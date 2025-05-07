@@ -1,0 +1,343 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Samantha - AI Reading Assistant (THIS IS AN MVP)
+
+## Background and Motivation
+- AI-powered reading assistant to help users read and understand text content
+- Uses text-to-speech, highlighting, and progress tracking
+- Built with Next.js, React, and OpenAI integration
+
+## Key Challenges and Analysis
+- Audio synchronization with text highlighting
+- Content extraction from various web sources
+- User authentication and reading history tracking
+- Text preprocessing for better reading experience
+
+## High-level Task Breakdown
+1. Core Reading Features
+   - [x] Text display
+   - [x] Text-to-speech
+   - [x] Highlighting
+   - [x] Progress tracking
+
+2. User Features
+   - [x] Authentication
+   - [x] History tracking
+   - [x] Voice settings
+   - [x] Theme support
+
+3. Future Enhancements
+   - [ ] Export functionality
+   - [ ] Advanced voice options
+   - [ ] Performance optimization
+   - [ ] Error handling improvements
+
+## Project Status Board
+- [x] Basic app structure
+- [x] Core reading features
+- [x] User authentication
+- [x] History tracking
+- [x] TTS Reliability Improvements ✅
+- [x] Content Extraction Improvements ✅
+- [ ] Performance Optimization
+- [ ] Error Handling
+- [ ] UX Enhancements
+
+## Current Focus: Content Extraction Improvements
+
+### Content Extraction Quick Wins Plan
+
+We will focus on three key improvements to make content extraction more robust while keeping implementation complexity manageable for the MVP:
+
+#### 1. Implement Multiple Selector Strategies
+
+**Problem Statement:**
+The current extraction process uses a limited set of CSS selectors in a specific order. When these selectors don't match a website's structure, the extraction fails entirely or returns minimal content.
+
+**Technical Approach:**
+Implement a cascade of extraction methods that try different strategies and select the best result based on content quality metrics (length, text-to-code ratio, presence of paragraphs).
+
+**Implementation Plan:**
+
+1. **Create a Selector Strategy System:**
+   - Build an array of selector strategies, each with:
+     - Name (for logging/debugging)
+     - Priority/order
+     - CSS selector pattern
+     - Content quality evaluation function
+
+2. **Implement a Main Extraction Function:**
+   - Try each strategy in sequence
+   - Evaluate and score results from each attempt
+   - Keep track of the best result so far
+   - Return the highest quality extraction
+
+3. **Add Content Quality Metrics:**
+   - Text length (longer is generally better)
+   - Text-to-HTML ratio (higher is usually better content)
+   - Paragraph count (more structured content is preferred)
+   - Image count (some images are good, too many indicates a gallery)
+   - Number of links in the content (fewer relative to text is better)
+
+4. **Implement Specific Strategies:**
+   - **Main Content Strategy:** Target elements like `main`, `[role="main"]`
+   - **Article Strategy:** Target `article`, `.article`, `.post`
+   - **Content Class Strategy:** Look for common content class names (`.content`, `.entry-content`)
+   - **Header + Content Strategy:** Detect heading elements and take their parent/following content
+   - **Largest Text Block Strategy:** Find the element with the most text content
+   - **Fallback Strategy:** Use `<body>` with aggressive cleaning
+
+**Success Criteria:**
+- Successful content extraction from at least 90% of the test websites
+- Extract content with proper paragraph structure and formatting
+- Minimal irrelevant content (navigation, footers, sidebars)
+- Clear logging of which strategy worked for debugging
+
+**Testing Plan:**
+- Create a test suite of 10-15 diverse websites
+- Document current extraction success/failure
+- Compare new extraction results
+- Measure extraction quality metrics
+
+#### 2. Add Basic Error Reporting
+
+**Problem Statement:**
+When content extraction fails, users see generic error messages or no message at all. This provides no useful feedback on what went wrong or how to resolve it.
+
+**Technical Approach:**
+Create a structured error system that categorizes extraction failures and provides user-friendly messages with possible solutions.
+
+**Implementation Plan:**
+
+1. **Define Error Categories:**
+   - **Access Errors:** Site blocked access, CORS issues, firewalls
+   - **Content Detection Errors:** No content found, content too short
+   - **Extraction Errors:** Failed processing, timeout
+   - **Format Errors:** Unsupported content type, non-article pages
+
+2. **Implement Error Detection Logic:**
+   - Add logic to detect specific error conditions
+   - Create error codes and descriptive messages for each
+   - Include suggested actions where applicable
+
+3. **Enhance API Response Structure:**
+   - Add error field with structured information:
+     ```json
+     {
+       "error": {
+         "code": "CONTENT_NOT_FOUND",
+         "message": "No readable content found on this page.",
+         "suggestion": "Try a different article page or check if the content requires login."
+       }
+     }
+     ```
+
+4. **Create User-Friendly Error Display:**
+   - Design error states with icon, message, and action buttons
+   - Add links to troubleshooting tips for common issues
+   - Provide a "Try Again" option where appropriate
+
+**Success Criteria:**
+- All extraction failures provide specific error messages
+- Error messages are helpful and suggest possible solutions
+- Errors are logged for analysis and future improvements
+- UI handles errors gracefully with clear user guidance
+
+**Testing Plan:**
+- Test with sites known to cause specific issues
+- Verify correct error categorization
+- Ensure error messages are user-friendly
+- Check that error states are properly displayed in the UI
+
+#### 3. Timeout Handling
+
+**Problem Statement:**
+Content extraction can hang indefinitely on slow-loading sites or sites with complex JavaScript, leading to poor user experience and potential resource leaks.
+
+**Technical Approach:**
+Implement timeout controls with partial content extraction fallback to ensure the process always completes in a reasonable time.
+
+**Implementation Plan:**
+
+1. **Add Timeout Controls:**
+   - Implement timeout wrapper for fetch operations
+   - Set reasonable default timeout (15 seconds)
+   - Add timeout to DOM processing operations
+
+2. **Create Partial Content Recovery:**
+   - When timeout occurs, run a simplified extraction on whatever content is available
+   - Include visible warning that content may be incomplete
+   - Log timing information for performance analysis
+
+3. **Implement Progressive Content Loading:**
+   - Return initial content quickly with a loading status
+   - Continue extraction in the background if needed
+   - Update UI as more content becomes available
+
+4. **Add Timeout Configuration:**
+   - Allow timeout adjustment for different site types
+   - Implement retry with increased timeout for certain failure patterns
+
+**Success Criteria:**
+- Extraction never hangs indefinitely
+- Reasonable content is returned even for slow sites
+- User experience remains smooth with appropriate loading feedback
+- Extraction process releases resources properly even on timeout
+
+**Testing Plan:**
+- Test with intentionally slow connections
+- Verify timeout behavior on complex sites
+- Measure extraction time across various website types
+- Confirm resources are properly released
+
+## Implementation Schedule
+
+### Week 1: Multiple Selector Strategies
+- Day 1-2: Design and implement the selector strategy system
+- Day 3-4: Create content quality evaluation functions
+- Day 5: Test and refine strategies on sample websites
+
+### Week 1: Error Reporting
+- Day 1: Define error categories and create error detection logic
+- Day 2: Enhance API response structure
+- Day 3: Design and implement error display components
+
+### Week 2: Timeout Handling
+- Day 1: Implement timeout controls
+- Day 2: Create partial content recovery system
+- Day 3: Test and optimize timeout behavior
+
+## Risks and Mitigations
+
+- **Risk**: Some websites may actively block scrapers
+  - **Mitigation**: Implement user-agent rotation and respect robots.txt
+
+- **Risk**: JavaScript-heavy sites may not have content in initial HTML
+  - **Mitigation**: Document limitations clearly for users
+
+- **Risk**: Too many extraction strategies could slow down the process
+  - **Mitigation**: Set time limits for each strategy and apply them in parallel where possible
+
+- **Risk**: Extraction improvements may break existing functionality
+  - **Mitigation**: Maintain a test suite of currently working examples
+
+## Core Functionality Issues
+1. ✅ **Text-to-Speech Reliability Issues**:
+   - ✅ Browser compatibility problems with Web Speech API
+   - ✅ Audio synchronization with text highlighting is inconsistent
+   - ✅ Limited fallback options when browser speech synthesis fails
+   - ✅ Potential issues with autoplay policies in different browsers
+
+2. **Content Extraction Challenges**:
+   - Current web content extraction is brittle and site-dependent
+   - Many edge cases in HTML parsing that can break the extraction
+   - Limited error handling for malformed or blocked websites
+   - No support for paywalled or JavaScript-rendered content
+
+3. **Performance Bottlenecks**:
+   - Heavy client-side processing for text highlighting
+   - Large DOM manipulation in paragraph/sentence highlighters
+   - Potential memory leaks in audio handling
+   - No optimization for mobile devices or low-bandwidth scenarios
+
+4. **Authentication Issues**:
+   - Limited error handling for authentication failures
+   - No refresh token mechanism implemented
+   - Session persistence problems across page reloads
+   - Missing proper user feedback for auth state changes
+
+5. **User Experience Gaps**:
+   - No offline support or content caching
+   - Limited accessibility features
+   - No way to save or export content for later
+   - Lack of user preferences persistence
+
+6. **Error Handling Weaknesses**:
+   - Insufficient error boundaries for component failures
+   - Limited logging for debugging production issues
+   - No structured error reporting system
+   - Limited recovery options when services fail
+
+7. **API Security Concerns**:
+   - OpenAI API key exposure risks
+   - Rate limiting not properly implemented
+   - No validation for malicious input in content extraction
+   - Missing CSRF protection in authentication flows
+
+8. **Testing Coverage**:
+   - Limited automated tests for core functionality
+   - No end-to-end testing for critical user flows
+   - Missing performance testing for large text documents
+   - No cross-browser compatibility testing
+
+## Executor's Feedback or Assistance Requests
+- TTS reliability improvements completed with better UX
+- Working on detailed plan for content extraction improvements
+- Need test websites for extraction improvement validation
+
+## Lessons
+- Browser speech APIs have significant compatibility issues and need robust fallbacks
+- Autoplay policies vary across browsers and require user interaction detection
+- Providing clear user feedback is essential for error recovery
+- Proper resource cleanup is critical to prevent memory leaks
+- Content extraction needs multiple strategies rather than a one-size-fits-all approach
+
+## Current Focus: Audio Loading Error Fix
+
+### Problem
+When loading the Introduction sample audio, the application shows an error:
+```
+Error: Error pre-loading audio: {}
+```
+The error occurs in the ReaderView component's pre-loading audio useEffect, and also in the useAudioPlayer hook, where we're accessing MediaError properties which are problematic in React 19.
+
+### Solution Plan
+Our initial approach attempted to properly access MediaError properties, but we've discovered this is unreliable across browsers and React 19. Instead, we're implementing a more robust approach that:
+
+1. Avoids accessing MediaError object properties entirely
+2. Uses on* properties instead of addEventListener for better cross-browser compatibility
+3. Implements proper cleanup and mounted state checking
+4. Uses try/catch around all audio operations
+
+### Implementation Tasks
+- [x] Update the pre-loading useEffect in reader-view.tsx to completely avoid MediaError properties
+- [x] Fix the double slash in the audio URLs 
+- [x] Add timeouts for audio loading detection
+- [x] Restructure all audio initialization to use document.createElement instead of new Audio()
+- [x] Add proper cleanup with mounted state tracking
+- [x] Update all components that handle audio loading
+- [x] Fix the useAudioPlayer hook with the same approach
+
+### Current Status
+Completely revamped the audio loading approach across the application:
+
+1. In ReaderView:
+   - Removed all attempts to access MediaError properties
+   - Implemented a simpler error handling approach that avoids the empty error object
+   - Added proper cleanup with mounted state tracking
+
+2. In HomeView:
+   - Applied same approach with robust error handling
+   - Added window.__audioCleanup for easier memory management
+   - Improved timeout handling
+
+3. In TimestampHighlighter:
+   - Switched to using on* properties instead of addEventListener
+   - Added proper cleanup to prevent memory leaks
+   - Used more resilient error handling that doesn't try to access MediaError
+
+4. In useAudioPlayer hook:
+   - Completely rewrote audio initialization and error handling
+   - Removed all MediaError property access
+   - Added proper cleanup and timeout detection
+   - Improved play() method error handling to avoid accessing error properties
+
+This completely different approach should resolve the issue because:
+- It avoids accessing the problematic MediaError properties entirely
+- It uses more cross-browser compatible methods for audio elements
+- It implements proper cleanup and error handling
+
+These changes together provide a more reliable solution for audio loading that should work across browsers and with Next.js's strict error handling.
