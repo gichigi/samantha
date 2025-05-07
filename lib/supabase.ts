@@ -1,5 +1,4 @@
 import { createClient } from "@supabase/supabase-js"
-import { Database } from "../types/supabase"
 
 // Get environment variables with defaults that allow development without credentials
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder-url.supabase.co'
@@ -18,45 +17,8 @@ export const createClientInstance = () => {
     }
   }
   
-  // Create client with cookie-based auth instead of localStorage
-  return createClient<Database>(supabaseUrl, supabaseAnonKey, {
-    auth: {
-      storageKey: 'sb-auth-token',
-      persistSession: true,
-      // Use cookies for storing tokens with domain settings for cross-port compatibility
-      storage: {
-        getItem: (key) => {
-          // Get from cookies
-          const cookies = document.cookie.split(';')
-          const cookie = cookies.find(c => c.trim().startsWith(`${key}=`))
-          if (!cookie) return null
-          return cookie.split('=')[1]
-        },
-        setItem: (key, value) => {
-          // Set cookie for cross-port compatibility
-          // Use domain=localhost to work across different ports (3000, 3001, 3002, etc.)
-          const isDev = process.env.NODE_ENV === 'development'
-          if (isDev) {
-            // Development settings: works across all localhost ports
-            document.cookie = `${key}=${value}; path=/; max-age=2592000; domain=localhost; SameSite=Lax`
-          } else {
-            // Production settings: more secure
-            document.cookie = `${key}=${value}; path=/; max-age=2592000; SameSite=Lax; Secure`
-          }
-          console.log(`Set auth cookie: ${key} (value truncated for security)`)
-        },
-        removeItem: (key) => {
-          // Remove cookie using same domain settings
-          const isDev = process.env.NODE_ENV === 'development'
-          if (isDev) {
-            document.cookie = `${key}=; path=/; max-age=0; domain=localhost`
-          } else {
-            document.cookie = `${key}=; path=/; max-age=0; Secure`
-          }
-        }
-      }
-    }
-  })
+  // Create client with default settings
+  return createClient(supabaseUrl, supabaseAnonKey)
 }
 
 // Client-side Supabase client
@@ -65,11 +27,6 @@ let supabaseClient: ReturnType<typeof createClientInstance> | null = null
 export const getSupabaseClient = () => {
   if (!supabaseClient && typeof window !== "undefined") {
     try {
-      // Force clear any existing auth cookies to prevent stale data
-      if (typeof window !== "undefined") {
-        document.cookie = 'sb-auth-token=; path=/; max-age=0; domain=localhost'
-      }
-      
       supabaseClient = createClientInstance()
     } catch (error) {
       console.error('Failed to create Supabase client:', error)
@@ -90,7 +47,7 @@ export const createServerSupabaseClient = () => {
   }
   
   try {
-    return createClient<Database>(serverSupabaseUrl, serverSupabaseKey, {
+    return createClient(serverSupabaseUrl, serverSupabaseKey, {
       auth: {
         autoRefreshToken: false,
         persistSession: false,
