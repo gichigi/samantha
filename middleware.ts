@@ -1,29 +1,48 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
+import { createServerClient } from '@supabase/ssr'
 
-export function middleware(request: NextRequest) {
-  // Log the request path and method
-  console.log(`Request: ${request.method} ${request.nextUrl.pathname}`)
-
-  // Log headers (excluding sensitive ones)
-  const headers: Record<string, string> = {}
-  request.headers.forEach((value, key) => {
-    if (!key.toLowerCase().includes("authorization") && !key.toLowerCase().includes("cookie")) {
-      headers[key] = value
-    }
-  })
-  console.log("Request headers:", headers)
-
-  // Continue to the next middleware or route handler
+export async function middleware(request: NextRequest) {
+  // Create a response object to modify
   const response = NextResponse.next()
+  
+  // Create supabase client
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name) {
+          return request.cookies.get(name)?.value
+        },
+        set(name, value, options) {
+          response.cookies.set({
+            name,
+            value,
+            ...options,
+          })
+        },
+        remove(name, options) {
+          response.cookies.set({
+            name,
+            value: '',
+            ...options,
+          })
+        },
+      },
+    }
+  )
 
-  // Add a response handler
+  // Optional: Refresh the session if it exists
+  const { data: { session } } = await supabase.auth.getSession()
+
+  // No cache for routes that might have auth state
   response.headers.set("x-middleware-cache", "no-cache")
 
   return response
 }
 
-// Only run the middleware on API routes
+// Run middleware on API routes and auth routes
 export const config = {
-  matcher: "/api/:path*",
+  matcher: ["/api/:path*", "/auth/:path*"],
 }

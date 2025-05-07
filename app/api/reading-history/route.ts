@@ -1,19 +1,21 @@
 import { NextResponse } from "next/server"
-import { createServerSupabaseClient } from "@/lib/supabase"
+import { cookies } from 'next/headers'
+import { createClient } from '@/utils/supabase/server'
 
 export async function POST(request: Request) {
   try {
-    const supabase = createServerSupabaseClient()
+    // Create Supabase client with proper cookie handling
+    const supabase = await createClient()
 
     // Get the current user from the session
-    const {
-      data: { session },
-    } = await supabase.auth.getSession()
+    const { data: { session } } = await supabase.auth.getSession()
 
     if (!session) {
+      console.log("[POST] No session found, returning 401")
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    console.log("[POST] Session found for user:", session.user.email)
     const userId = session.user.id
 
     // Parse request body
@@ -124,17 +126,18 @@ export async function POST(request: Request) {
 
 export async function GET(request: Request) {
   try {
-    const supabase = createServerSupabaseClient()
+    // Create Supabase client with proper cookie handling
+    const supabase = await createClient()
 
     // Get the current user from the session
-    const {
-      data: { session },
-    } = await supabase.auth.getSession()
+    const { data: { session } } = await supabase.auth.getSession()
 
     if (!session) {
+      console.log("[GET] No session found, returning 401")
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    console.log("[GET] Session found for user:", session.user.email)
     const userId = session.user.id
 
     // Get URL parameters

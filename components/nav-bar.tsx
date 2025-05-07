@@ -1,14 +1,13 @@
-"use client"
-
+'use client'
 import Link from 'next/link'
 import { useAuth } from './auth-provider'
 import LogoutButton from './logout-button'
 
-export default function Header() {
+export default function NavBar() {
   const { user, loading } = useAuth()
   
   return (
-    <header className="bg-white shadow-sm">
+    <nav className="bg-white shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex-shrink-0">
@@ -17,7 +16,7 @@ export default function Header() {
             </Link>
           </div>
           
-          <nav className="flex space-x-4 items-center">
+          <div className="flex space-x-4 items-center">
             {loading ? (
               <div className="text-gray-500">Loading...</div>
             ) : user ? (
@@ -35,9 +34,9 @@ export default function Header() {
                 Sign in
               </Link>
             )}
-          </nav>
+          </div>
         </div>
       </div>
-    </header>
+    </nav>
   )
-}
+} 

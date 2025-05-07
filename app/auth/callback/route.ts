@@ -4,47 +4,70 @@ import { cookies } from 'next/headers'
 import type { NextRequest } from 'next/server'
 
 export async function GET(request: NextRequest) {
-  try {
-    const { searchParams, origin } = new URL(request.url)
-    const code = searchParams.get('code')
-    const next = searchParams.get('next') || '/'
+  const { searchParams, origin, hash } = new URL(request.url)
+  const code = searchParams.get('code')
+  const next = searchParams.get('next') || '/'
+  const error = searchParams.get('error')
 
-    if (!code) {
-      console.error('No code provided in OAuth callback')
-      return NextResponse.redirect(`${origin}?error=missing_code`)
-    }
+  // Handle errors explicitly
+  if (error) {
+    console.error(`Auth error: ${error}`)
+    return NextResponse.redirect(`${origin}?error=${encodeURIComponent(error)}`)
+  }
 
-    const cookieStore = cookies()
-    
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          get(name: string) {
-            return cookieStore.get(name)?.value
-          },
-          set(name: string, value: string, options: any) {
-            cookieStore.set({ name, value, ...options })
-          },
-          remove(name: string, options: any) {
-            cookieStore.set({ name, value: '', ...options })
-          },
+  // Create a response to use for setting cookies
+  const response = NextResponse.redirect(`${origin}${next}`)
+
+  // Create supabase client
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name) {
+          // Use the request cookies directly
+          return request.cookies.get(name)?.value
         },
-      }
-    )
+        set(name, value, options) {
+          // Set cookies on the response
+          response.cookies.set({
+            name,
+            value,
+            ...options,
+          })
+        },
+        remove(name, options) {
+          // Remove cookies from the response
+          response.cookies.set({
+            name,
+            value: '',
+            ...options,
+          })
+        },
+      },
+    }
+  )
 
-    // Exchange the code for a session
+  // If we have a code, use code exchange flow
+  if (code) {
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     
     if (error) {
       console.error('Error exchanging code for session:', error.message)
-      return NextResponse.redirect(`${origin}?error=auth_error&message=${encodeURIComponent(error.message)}`)
+      return NextResponse.redirect(`${origin}?error=${encodeURIComponent(error.message)}`)
     }
-
-    return NextResponse.redirect(`${origin}${next}`)
-  } catch (error) {
-    console.error('Unexpected error in auth callback:', error)
-    return NextResponse.redirect(`${origin}?error=unexpected_error`)
+    
+    // Redirect with the response that contains the session cookies
+    return response
   }
+
+  // If we don't have a code but have a hash, it might be using implicit grant
+  if (hash && hash.includes('access_token')) {
+    // Just redirect to the main app which will pick up the tokens from the hash
+    return response
+  }
+
+  // No code or token found
+  console.error('No authentication code or token found in callback')
+  return NextResponse.redirect(`${origin}?error=missing_auth_data`)
 }
