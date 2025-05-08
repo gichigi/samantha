@@ -208,12 +208,6 @@ export default function HomeView() {
       <div className="w-full max-w-xl">
       <UrlInput onSubmit={handleUrlSubmit} isLoading={isLoading} />
       </div>
-
-      <div className="mt-8 text-center">
-        <Link href="/test" className="text-white/70 text-sm underline hover:text-white">
-          TTS Testing Page
-        </Link>
-      </div>
     </main>
   )
 }

@@ -200,6 +200,30 @@ export default function ReaderView() {
       }`}
       onClick={!useTimestampHighlighting && isReady ? toggle : undefined}
     >
+      {/* Back button added directly to the reader view */}
+      <div className="absolute top-4 left-4 z-20">
+        <button
+          onClick={goToHomeScreen}
+          className="rounded-full bg-white/10 hover:bg-white/20 p-2 transition-colors"
+          aria-label="Go back to home"
+        >
+          <svg 
+            xmlns="http://www.w3.org/2000/svg" 
+            width="24" 
+            height="24" 
+            viewBox="0 0 24 24" 
+            fill="none" 
+            stroke="currentColor" 
+            strokeWidth="2" 
+            strokeLinecap="round" 
+            strokeLinejoin="round" 
+            className="text-white"
+          >
+            <path d="M15 18l-6-6 6-6"/>
+          </svg>
+        </button>
+      </div>
+      
       {/* Main content - no navbar here anymore */}
       <div className="flex-1 pt-16 pb-24">
         {useTimestampHighlighting && audioUrl ? (

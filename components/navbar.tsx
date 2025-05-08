@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { History, ChevronLeft } from "lucide-react"
-import LoginButton from "@/components/login-button"
 import { useAuth } from "@/contexts/auth-context"
 
 export default function Navbar() {
@@ -85,7 +84,6 @@ export default function Navbar() {
               <span>History</span>
             </Link>
           )}
-          <LoginButton />
         </div>
       </div>
     </nav>

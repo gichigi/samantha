@@ -1,6 +1,25 @@
+"use client"
+
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
 
-export default async function TestPage() {
+export default function TestPage() {
+  const router = useRouter()
+  
+  // Setup back button handler
+  useEffect(() => {
+    const setBackHandler = new CustomEvent('setBackHandler', { 
+      detail: { handler: () => router.push('/') }
+    });
+    window.dispatchEvent(setBackHandler);
+    
+    return () => {
+      const clearBackHandler = new CustomEvent('clearBackHandler');
+      window.dispatchEvent(clearBackHandler);
+    };
+  }, [router]);
+
   const supabase = await createClient()
   
   // Test auth session
@@ -16,7 +35,19 @@ export default async function TestPage() {
     <div className="p-8">
       <h1 className="text-2xl font-bold mb-8">Supabase Connection Test</h1>
       
-          <div className="mb-8">
+      <div className="mb-8">
+        <h2 className="text-xl font-semibold mb-2">TTS Test</h2>
+        <p>This page is used for testing text-to-speech functionality.</p>
+      </div>
+      
+      <button
+        onClick={() => router.push('/')} 
+        className="px-4 py-2 bg-blue-600 text-white rounded-md"
+      >
+        Return to Home
+      </button>
+
+      <div className="mb-8">
         <h2 className="text-xl font-semibold mb-2">Auth Status</h2>
         <div className="p-4 bg-gray-100 rounded">
           {session ? (
