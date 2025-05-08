@@ -245,7 +245,7 @@ export default function SentenceHighlighter({ text, title, onSentenceClick }: Se
         >
           <div className="py-[40vh] max-w-2xl w-full">
             {/* Render each sentence as its own paragraph */}
-            <div className="space-y-6">
+          <div className="space-y-6">
               {sentences.map((sentence, index) => (
                 <p
                   key={index}
@@ -271,11 +271,11 @@ export default function SentenceHighlighter({ text, title, onSentenceClick }: Se
                       : index < activeSentenceIndex
                         ? "text-white/60"
                         : "text-white/30"
-                  }`}
-                >
+                      }`}
+                    >
                   {sentence}
-                </p>
-              ))}
+              </p>
+            ))}
             </div>
           </div>
         </div>

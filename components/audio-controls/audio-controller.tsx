@@ -48,19 +48,19 @@ export default function AudioController({
       />
 
       {/* Audio controls */}
-      <div className="fixed bottom-0 left-0 right-0 z-20">
-        {/* Play button */}
-        <div className="flex justify-center pb-8 pt-4">
+    <div className="fixed bottom-0 left-0 right-0 z-20">
+      {/* Play button */}
+      <div className="flex justify-center pb-8 pt-4">
           <PlayButton 
             isPlaying={isPlaying} 
             onClick={onTogglePlay} 
             disabled={!isSupported || !!error}
           />
-        </div>
-
-        {/* Progress bar at the very bottom */}
-        <ProgressBar progress={progress} onSeek={onSeek} />
       </div>
+
+      {/* Progress bar at the very bottom */}
+      <ProgressBar progress={progress} onSeek={onSeek} />
+    </div>
     </>
   )
 }

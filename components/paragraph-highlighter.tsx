@@ -56,7 +56,7 @@ export default function ParagraphHighlighter({ text, title, audioSrc, onParagrap
     // Clean up any existing audio and timeouts
     let isMounted = true;
     const cleanup = () => {
-      if (audioRef.current) {
+    if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current.src = "";
       }

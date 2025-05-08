@@ -6,7 +6,7 @@ export async function middleware(request: NextRequest) {
   // Create a response object to modify
   const response = NextResponse.next()
   
-  // Create supabase client with simple cookie configuration
+  // Create supabase client
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -34,7 +34,7 @@ export async function middleware(request: NextRequest) {
   )
 
   // Optional: Refresh the session if it exists
-  await supabase.auth.getSession()
+  const { data: { session } } = await supabase.auth.getSession()
 
   // No cache for routes that might have auth state
   response.headers.set("x-middleware-cache", "no-cache")

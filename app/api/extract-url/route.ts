@@ -31,7 +31,7 @@ export async function POST(request: Request) {
     }
 
     console.log(`Extracting content from URL: ${url}`)
-    
+
     // Get the content extraction service
     const extractionService = getContentExtractionService({
       // Configure service options
@@ -42,7 +42,7 @@ export async function POST(request: Request) {
     try {
       // Extract content using our improved service
       const extractionResult = await extractionService.extractContent(url)
-      
+
       // Log extraction info for debugging
       if (extractionResult.extractionInfo) {
         console.log(`Content extracted using strategy: ${extractionResult.extractionInfo.strategy}`)
@@ -53,7 +53,7 @@ export async function POST(request: Request) {
           console.warn("Returning partial content due to timeout or other issues")
         }
       }
-      
+
       // Return the extracted content
       return NextResponse.json({
         title: extractionResult.title,

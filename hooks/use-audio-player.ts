@@ -28,77 +28,106 @@ export function useAudioPlayer({ audioUrl, onTimeUpdate, onEnded }: UseAudioPlay
       return
     }
 
+    // Keep track of component mounted state
+    let isMounted = true;
+
     // Clean up any existing audio element
     if (audioRef.current) {
       audioRef.current.pause()
       audioRef.current.src = ""
     }
 
-    const audio = new Audio(audioUrl)
-    audioRef.current = audio
-
-    // Reset state
-    setError(null)
-    setAutoplayBlocked(false)
-    autoplayAttemptedRef.current = false
-
-    // Set up event listeners
-    audio.addEventListener("loadedmetadata", () => {
-      setDuration(audio.duration)
-      setIsReady(true)
-      console.log(`Audio loaded: ${audioUrl} (duration: ${audio.duration}s)`)
-    })
-
-    audio.addEventListener("canplaythrough", () => {
-      console.log("Audio can play through without buffering")
-    })
-
-    audio.addEventListener("ended", () => {
-      setIsPlaying(false)
-      clearProgressInterval()
-      if (onEnded) onEnded()
-    })
-
-    audio.addEventListener("error", (e) => {
-      const errorCode = audio.error ? audio.error.code : 0
-      let errorMessage = "Unknown audio error";
-      
-      // Provide more specific error messages based on the error code
-      if (audio.error) {
-        switch(errorCode) {
-          case 1:
-            errorMessage = "Audio loading aborted";
-            break;
-          case 2:
-            errorMessage = "Network error while loading audio";
-            break;
-          case 3:
-            errorMessage = "Audio decoding failed - format may be unsupported";
-            break;
-          case 4:
-            errorMessage = "Audio source not found or access denied";
-            break;
-          default:
-            errorMessage = `Error: ${audio.error.message}`;
-        }
+    // Create timeout for loading detection
+    const timeoutId = setTimeout(() => {
+      if (isMounted) {
+        console.warn("Audio loading timeout in useAudioPlayer");
+        setError("Audio is taking too long to load");
+        setIsReady(false);
       }
+    }, 20000); // 20 second timeout
+    
+    // Normalize URL to fix any double slashes
+    const normalizedUrl = audioUrl.replace(/([^:]\/)\/+/g, "$1");
+    
+    // Use document.createElement for better browser compatibility
+    const audio = document.createElement('audio');
+    audioRef.current = audio;
+
+    // Set properties for better cross-browser support
+    audio.crossOrigin = "anonymous";
+    audio.preload = "auto";
+
+    // Set up event handlers using on* properties for better compatibility
+    audio.onloadedmetadata = () => {
+      if (!isMounted) return;
       
-      console.error("Audio error:", errorMessage, audio.error);
-      setError(errorMessage);
+      clearTimeout(timeoutId);
+      setDuration(audio.duration);
+      setIsReady(true);
+      console.log(`Audio loaded: ${normalizedUrl} (duration: ${audio.duration}s)`);
+    };
+
+    audio.oncanplaythrough = () => {
+      if (!isMounted) return;
+      
+      console.log("Audio can play through without buffering");
+    };
+
+    audio.onended = () => {
+      if (!isMounted) return;
+      
+      setIsPlaying(false);
+      clearProgressInterval();
+      if (onEnded) onEnded();
+    };
+
+    // Simple error handler that doesn't access MediaError properties
+    audio.onerror = () => {
+      if (!isMounted) return;
+      
+      clearTimeout(timeoutId);
+      
+      // Just log an error occurred without trying to access properties
+      console.error("Audio error:", {
+        message: "Failed to load audio file",
+        url: normalizedUrl
+      });
+      
+      setError("Failed to load audio file");
       setIsReady(false);
-    })
+    };
 
     // Load the audio
-    audio.load()
+    try {
+      audio.src = normalizedUrl;
+      audio.load();
+    } catch (e) {
+      console.error("Exception during audio loading:", e);
+      setError("Error starting audio playback");
+    }
 
     return () => {
-      if (audio) {
-        audio.pause()
-        audio.src = ""
-        clearProgressInterval()
+      // Mark component as unmounted
+      isMounted = false;
+      
+      // Clear timeout
+      clearTimeout(timeoutId);
+      
+      // Clean up audio element
+      if (audioRef.current) {
+        // Remove event handlers to prevent memory leaks
+        audioRef.current.onloadedmetadata = null;
+        audioRef.current.oncanplaythrough = null;
+        audioRef.current.onended = null;
+        audioRef.current.onerror = null;
+        
+        audioRef.current.pause();
+        audioRef.current.src = "";
       }
-    }
-  }, [audioUrl, onEnded])
+      
+      clearProgressInterval();
+    };
+  }, [audioUrl, onEnded]);
 
   // Check if autoplay is supported (to be called before playing)
   const checkAutoplaySupport = async (): Promise<boolean> => {
@@ -171,24 +200,35 @@ export function useAudioPlayer({ audioUrl, onTimeUpdate, onEnded }: UseAudioPlay
         audioRef.current.currentTime = startTime
       }
 
+      try {
       await audioRef.current.play()
       setIsPlaying(true)
       startProgressInterval()
-      
-      // If play succeeded, reset any autoplay blocked state
-      if (autoplayBlocked) {
-        setAutoplayBlocked(false)
-      }
-      
+        
+        // If play succeeded, reset any autoplay blocked state
+        if (autoplayBlocked) {
+          setAutoplayBlocked(false)
+        }
+        
       setError(null)
-    } catch (err: any) {
-      // Differentiate between autoplay blocking and other errors
-      if (err.name === 'NotAllowedError') {
-        setAutoplayBlocked(true)
-        console.warn("Autoplay blocked:", err)
-      } else {
-        setError(`Failed to play audio: ${err.message || "Unknown error"}`)
+      } catch (playError) {
+        // Handle play errors without accessing error properties directly
+        console.error("Play error:", playError instanceof Error ? playError.message : "Unknown play error");
+        
+        // Try to determine if this is an autoplay blocking error
+        if (playError instanceof Error && playError.name === 'NotAllowedError') {
+          setAutoplayBlocked(true)
+          console.warn("Autoplay blocked by browser policy")
+        } else {
+          setError("Failed to play audio. Try interacting with the page first.")
+        }
+        
+        setIsPlaying(false)
       }
+    } catch (err) {
+      // Handle errors in the outer try block
+      console.error("General play error:", err);
+      setError("An error occurred while trying to play audio")
       setIsPlaying(false)
     }
   }

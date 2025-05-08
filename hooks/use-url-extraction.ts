@@ -114,7 +114,7 @@ export function useUrlExtraction() {
 
       // Process the text for TTS
       try {
-        await processText(formattedContent)
+      await processText(formattedContent)
       } catch (processError) {
         console.warn("Text processing warning:", processError)
         // Continue even if processing had issues - we'll use the raw content

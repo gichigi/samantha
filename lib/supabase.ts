@@ -17,17 +17,16 @@ export const createClientInstance = () => {
     }
   }
   
-  // Create client with default settings
   return createClient(supabaseUrl, supabaseAnonKey)
 }
 
 // Client-side Supabase client
-let supabaseClient: ReturnType<typeof createClientInstance> | null = null
+let supabaseClient: ReturnType<typeof createClient> | null = null
 
 export const getSupabaseClient = () => {
   if (!supabaseClient && typeof window !== "undefined") {
     try {
-      supabaseClient = createClientInstance()
+    supabaseClient = createClientInstance()
     } catch (error) {
       console.error('Failed to create Supabase client:', error)
       return null
@@ -48,11 +47,11 @@ export const createServerSupabaseClient = () => {
   
   try {
     return createClient(serverSupabaseUrl, serverSupabaseKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-      },
-    })
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  })
   } catch (error) {
     console.error('Failed to create server-side Supabase client:', error)
     return null

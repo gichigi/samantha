@@ -75,7 +75,7 @@ export default function TimestampHighlighter({ segments, audioSrc, title, onSegm
         setDuration(audio.duration);
         setIsAudioReady(true);
 
-        // Fill in any missing endTime values
+          // Fill in any missing endTime values
         processSegments();
       };
 
@@ -110,14 +110,14 @@ export default function TimestampHighlighter({ segments, audioSrc, title, onSegm
       } catch (e) {
         console.error("Exception during audio loading:", e);
         setError(`Error loading audio: ${(e as Error)?.message || "Unknown error"}`);
-      }
+    }
 
-      return () => {
-        // Clean up
+    return () => {
+      // Clean up
         isMounted = false;
         clearTimeout(timeoutId);
         
-        if (audioRef.current) {
+      if (audioRef.current) {
           // Remove event handlers to prevent memory leaks
           audioRef.current.onloadedmetadata = null;
           audioRef.current.onended = null;
@@ -125,7 +125,7 @@ export default function TimestampHighlighter({ segments, audioSrc, title, onSegm
           
           audioRef.current.pause();
           audioRef.current.src = "";
-        }
+      }
         
         clearProgressInterval();
       };

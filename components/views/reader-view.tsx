@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import Header from "@/components/header"
 import TimestampHighlighter from "@/components/timestamp-highlighter"
 import ParagraphHighlighter from "@/components/paragraph-highlighter"
+import SentenceHighlighter from "@/components/sentence-highlighter"
 import AudioController from "@/components/audio-controls/audio-controller"
 import { useReader } from "@/contexts/reader-context"
 import { useViewState } from "@/hooks/use-view-state"
@@ -127,6 +128,32 @@ export default function ReaderView() {
     }
   }, [audioError])
 
+  // Clean up audio loading if component unmounts during loading
+  useEffect(() => {
+    return () => {
+      // Call the cleanup function if it exists
+      if (window.__audioCleanup) {
+        window.__audioCleanup();
+        window.__audioCleanup = undefined;
+      }
+    };
+  }, []);
+
+  // Setup nav context 
+  useEffect(() => {
+    // Set back button handler in the navbar via custom event
+    const setBackHandler = new CustomEvent('setBackHandler', { 
+      detail: { handler: goToHomeScreen }
+    });
+    window.dispatchEvent(setBackHandler);
+    
+    return () => {
+      // Clear back handler when component unmounts
+      const clearBackHandler = new CustomEvent('clearBackHandler');
+      window.dispatchEvent(clearBackHandler);
+    };
+  }, []);
+
   const goToHomeScreen = () => {
     // Stop any playing audio
     if (isPlaying) {
@@ -173,32 +200,27 @@ export default function ReaderView() {
       }`}
       onClick={!useTimestampHighlighting && isReady ? toggle : undefined}
     >
-      {/* Fixed header */}
-      <div className="fixed top-0 left-0 right-0 z-20">
-        <Header title={currentTitle || "Web Content"} onBackClick={goToHomeScreen} />
-      </div>
-
-      {/* Main content */}
+      {/* Main content - no navbar here anymore */}
       <div className="flex-1 pt-16 pb-24">
         {useTimestampHighlighting && audioUrl ? (
           <TimestampHighlighter
             segments={getSegments()}
             audioSrc={audioUrl}
-            onSegmentClick={(index) => console.log(`Clicked segment ${index}`)}
+            title={currentTitle}
           />
         ) : audioUrl ? (
           <ParagraphHighlighter
             text={displayText}
+            title={currentTitle}
             audioSrc={audioUrl}
             onParagraphClick={(index) => console.log(`Clicked paragraph ${index}`)}
           />
         ) : (
-          <div className="flex items-center justify-center h-full">
-            <div className="text-white text-center p-4">
-              <p className="text-xl mb-4">Audio is being prepared...</p>
-              <p>This may take a few moments.</p>
-            </div>
-          </div>
+          <SentenceHighlighter
+            text={displayText}
+            title={currentTitle}
+            onSentenceClick={(index) => console.log(`Clicked sentence ${index}`)}
+          />
         )}
       </div>
 
