@@ -41,10 +41,10 @@ export default function LoginButton() {
 
   return (
     <>
-      <button
+    <button
         onClick={() => setIsAuthModalOpen(true)}
         className="flex items-center px-4 py-2 bg-white/10 hover:bg-white/20 text-white/90 rounded-md text-sm font-medium transition-colors"
-      >
+    >
         <LogIn size={16} className="mr-1.5" />
         <span>Sign in</span>
       </button>

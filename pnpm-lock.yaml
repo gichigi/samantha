@@ -180,6 +180,9 @@ importers:
         specifier: ^3.24.1
         version: 3.24.4
     devDependencies:
+      '@netlify/plugin-nextjs':
+        specifier: ^5.11.1
+        version: 5.11.1
       '@types/node':
         specifier: ^22
         version: 22.15.14
@@ -361,6 +364,10 @@ packages:
 
   '@mixmark-io/domino@2.2.0':
     resolution: {integrity: sha512-Y28PR25bHXUg88kCV7nivXrP2Nj2RueZ3/l/jdx6J9f8J4nsEGcgX0Qe6lt7Pa+J79+kPiJU3LguR6O/6zrLOw==}
+
+  '@netlify/plugin-nextjs@5.11.1':
+    resolution: {integrity: sha512-JD4JtrhW3R0uDaROfNzmhVoYFvj+GS2ARq7YXVXNFxo+rNyU4wJ6nuDZFTsuoEp4nbIVsm2oPaXyjgqk4pd1EA==}
+    engines: {node: '>=18.0.0'}
 
   '@next/env@15.2.4':
     resolution: {integrity: sha512-+SFtMgoiYP3WoSswuNmxJOCwi06TdWE733D+WPjpXIe4LXGULwEaofiiAy6kbS0+XjM5xF5n3lKuBwN2SnqD9g==}
@@ -2333,6 +2340,8 @@ snapshots:
       '@jridgewell/sourcemap-codec': 1.5.0
 
   '@mixmark-io/domino@2.2.0': {}
+
+  '@netlify/plugin-nextjs@5.11.1': {}
 
   '@next/env@15.2.4': {}
 

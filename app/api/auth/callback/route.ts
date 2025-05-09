@@ -47,4 +47,4 @@ export async function GET(request: NextRequest) {
     console.error('Unexpected error in auth callback:', error)
     return NextResponse.redirect(`${origin}?error=unexpected_error`)
   }
-}
+} 

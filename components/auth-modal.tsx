@@ -73,7 +73,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
             }
           }}
           providers={['google']}
-          redirectTo={`${window.location.origin}/auth/callback`}
+          redirectTo={`${window.location.origin}/api/auth/callback`}
         />
       </div>
     </div>

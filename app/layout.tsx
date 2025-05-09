@@ -32,7 +32,7 @@ export default function RootLayout({
           <ViewStateProvider>
             <ReaderProvider>
               <Navbar />
-              {children}
+          {children}
             </ReaderProvider>
           </ViewStateProvider>
         </AuthProvider>
