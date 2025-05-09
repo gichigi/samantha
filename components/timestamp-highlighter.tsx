@@ -163,13 +163,17 @@ export default function TimestampHighlighter({ segments, audioSrc, title, onSegm
       const segmentTop = activeSegment.offsetTop
       const segmentHeight = activeSegment.offsetHeight
       const containerHeight = container.clientHeight
-      const scrollPosition = segmentTop - containerHeight / 2 + segmentHeight / 2
+      
+      // Only scroll if the active segment is in the bottom half of the container
+      if (segmentTop > containerHeight / 2) {
+        const scrollPosition = segmentTop - containerHeight / 2 + segmentHeight / 2
 
-      // Smooth scroll to the position
-      container.scrollTo({
-        top: scrollPosition,
-        behavior: "smooth",
-      })
+        // Smooth scroll to the position
+        container.scrollTo({
+          top: scrollPosition,
+          behavior: "smooth",
+        })
+      }
     }
   }, [activeSegmentIndex])
 
@@ -201,9 +205,13 @@ export default function TimestampHighlighter({ segments, audioSrc, title, onSegm
 
   // Update active segment based on current time
   const updateActiveSegment = (currentTime: number) => {
+    // Add a slight delay (0.3 seconds) to the highlighting to compensate for any processing delays
+    // This makes the highlighting appear more in sync with the audio
+    const adjustedTime = Math.max(0, currentTime - 0.3);
+    
     for (let i = 0; i < segments.length; i++) {
       const segment = segments[i]
-      if (currentTime >= segment.startTime && currentTime < (segment.endTime || Number.POSITIVE_INFINITY)) {
+      if (adjustedTime >= segment.startTime && adjustedTime < (segment.endTime || Number.POSITIVE_INFINITY)) {
         if (i !== activeSegmentIndex) {
           setActiveSegmentIndex(i)
         }
@@ -330,10 +338,10 @@ export default function TimestampHighlighter({ segments, audioSrc, title, onSegm
   const paragraphs = groupSegmentsIntoParagraphs()
 
   return (
-    <div className="relative w-full h-full" onClick={togglePlayback}>
+    <div className="flex flex-col h-full relative" onClick={togglePlayback}>
       {/* Title section - more compact */}
       {title && (
-        <div className="px-6 py-4 mb-2 flex justify-center">
+        <div className="px-6 py-4 mb-0 flex justify-center">
           <div className="max-w-2xl w-full">
             <h1 className="text-2xl md:text-3xl font-bold leading-tight tracking-tight text-white text-center">
               {title}
@@ -346,17 +354,17 @@ export default function TimestampHighlighter({ segments, audioSrc, title, onSegm
       {/* Main text display with gradient fades */}
       <div className="relative w-full h-[85vh]">
         {/* Top fade gradient - reduced height */}
-        <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-[#3b82f6] to-transparent z-10 pointer-events-none"></div>
+        <div className="absolute top-0 left-0 right-0 h-8 bg-gradient-to-b from-[#3b82f6] to-transparent z-10 pointer-events-none"></div>
 
         {/* Bottom fade gradient */}
         <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-[#3b82f6] to-transparent z-10 pointer-events-none"></div>
 
         <div
           ref={containerRef}
-          className="text-left w-full h-full overflow-y-auto scrollbar-hide px-6"
+          className="text-left w-full h-full overflow-y-auto scrollbar-hide px-6 flex justify-center"
           style={{ scrollbarWidth: "none" }}
         >
-          <div className="py-[40vh]">
+          <div className="py-[20vh] max-w-2xl w-full">
             {/* Render paragraphs */}
             <div className="space-y-8">
               {paragraphs.map((paragraph, paragraphIndex) => (
@@ -367,7 +375,7 @@ export default function TimestampHighlighter({ segments, audioSrc, title, onSegm
                   {paragraph.map((segment) => {
                     // Find the global index of this segment
                     const globalIndex = segments.findIndex((s) => s === segment)
-
+                    
                     return (
                       <span
                         key={globalIndex}
@@ -377,15 +385,6 @@ export default function TimestampHighlighter({ segments, audioSrc, title, onSegm
                             e.stopPropagation()
                           }
                           handleSegmentClick(globalIndex)
-
-                          // Visual feedback when tapping a segment
-                          if (e) {
-                            const target = e.target as HTMLElement
-                            target.classList.add("tap-animation")
-                            setTimeout(() => {
-                              target.classList.remove("tap-animation")
-                            }, 300)
-                          }
                         }}
                         className={`inline cursor-pointer transition-colors duration-300 rounded-sm ${
                           globalIndex === activeSegmentIndex

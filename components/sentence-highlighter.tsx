@@ -80,13 +80,17 @@ export default function SentenceHighlighter({ text, title, onSentenceClick }: Se
       const sentenceTop = activeSentence.offsetTop
       const sentenceHeight = activeSentence.offsetHeight
       const containerHeight = container.clientHeight
-      const scrollPosition = sentenceTop - containerHeight / 2 + sentenceHeight / 2
-
-      // Smooth scroll to the position
-      container.scrollTo({
-        top: scrollPosition,
-        behavior: "smooth",
-      })
+      
+      // Only scroll if the active sentence is in the bottom half of the container
+      if (sentenceTop > containerHeight / 2) {
+        const scrollPosition = sentenceTop - containerHeight / 2 + sentenceHeight / 2
+        
+        // Smooth scroll to the position
+        container.scrollTo({
+          top: scrollPosition,
+          behavior: "smooth",
+        })
+      }
     }
   }, [activeSentenceIndex])
 
@@ -220,7 +224,7 @@ export default function SentenceHighlighter({ text, title, onSentenceClick }: Se
     <div className="flex flex-col h-full relative" onClick={togglePlayback}>
       {/* Title section - more compact */}
       {title && (
-        <div className="px-6 py-4 mb-2 flex justify-center">
+        <div className="px-6 py-4 mb-0 flex justify-center">
           <div className="max-w-2xl w-full">
             <h1 className="text-2xl md:text-3xl font-bold leading-tight tracking-tight text-white text-center">
               {title}
@@ -233,7 +237,7 @@ export default function SentenceHighlighter({ text, title, onSentenceClick }: Se
       {/* Main text display with gradient fades */}
       <div className="relative w-full h-[85vh]">
         {/* Top fade gradient - reduced height */}
-        <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-[#3b82f6] to-transparent z-10 pointer-events-none"></div>
+        <div className="absolute top-0 left-0 right-0 h-8 bg-gradient-to-b from-[#3b82f6] to-transparent z-10 pointer-events-none"></div>
 
         {/* Bottom fade gradient */}
         <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-[#3b82f6] to-transparent z-10 pointer-events-none"></div>
@@ -243,39 +247,25 @@ export default function SentenceHighlighter({ text, title, onSentenceClick }: Se
           className="text-left w-full h-full overflow-y-auto scrollbar-hide px-6 flex justify-center"
           style={{ scrollbarWidth: "none" }}
         >
-          <div className="py-[40vh] max-w-2xl w-full">
+          <div className="py-[20vh] max-w-2xl w-full">
             {/* Render each sentence as its own paragraph */}
-          <div className="space-y-6">
+          <div className="space-y-8">
               {sentences.map((sentence, index) => (
                 <p
                   key={index}
                   ref={index === activeSentenceIndex ? activeSentenceRef : null}
-                  onClick={(e) => {
-                    if (e) {
-                      e.stopPropagation();
-                    }
-                    handleSentenceClick(index);
-                    
-                    // Visual feedback when tapping a sentence
-                    if (e) {
-                      const target = e.target as HTMLElement;
-                      target.classList.add("tap-animation");
-                      setTimeout(() => {
-                        target.classList.remove("tap-animation");
-                      }, 300);
-                    }
-                  }}
-                  className={`text-3xl md:text-4xl lg:text-5xl font-bold leading-tight tracking-tight cursor-pointer transition-colors duration-300 ${
+                  className={`text-4xl md:text-5xl lg:text-6xl font-bold leading-tight tracking-tight cursor-pointer transition-colors duration-300 ${
                     index === activeSentenceIndex
                       ? "text-white"
                       : index < activeSentenceIndex
                         ? "text-white/60"
                         : "text-white/30"
-                      }`}
-                    >
+                  }`}
+                  onClick={() => handleSentenceClick(index)}
+                >
                   {sentence}
-              </p>
-            ))}
+                </p>
+              ))}
             </div>
           </div>
         </div>

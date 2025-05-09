@@ -259,22 +259,26 @@ export default function ParagraphHighlighter({ text, title, audioSrc, onParagrap
   // Auto-scroll to keep active paragraph in view
   useEffect(() => {
     if (activeParagraphRef.current && containerRef.current) {
-      const container = containerRef.current;
-      const activeParagraph = activeParagraphRef.current;
+      const container = containerRef.current
+      const activeParagraph = activeParagraphRef.current
 
-      // Calculate scroll position
-      const paragraphTop = activeParagraph.offsetTop;
-      const paragraphHeight = activeParagraph.offsetHeight;
-      const containerHeight = container.clientHeight;
-      const scrollPosition = paragraphTop - containerHeight / 2 + paragraphHeight / 2;
+      // Calculate the position to scroll to
+      const paragraphTop = activeParagraph.offsetTop
+      const paragraphHeight = activeParagraph.offsetHeight
+      const containerHeight = container.clientHeight
+      
+      // Only scroll if the active paragraph is in the bottom half of the container
+      if (paragraphTop > containerHeight / 2) {
+        const scrollPosition = paragraphTop - containerHeight / 2 + paragraphHeight / 2
 
-      // Smooth scroll
-      container.scrollTo({
-        top: scrollPosition,
-        behavior: "smooth",
-      });
+        // Smooth scroll to the position
+        container.scrollTo({
+          top: scrollPosition,
+          behavior: "smooth",
+        })
+      }
     }
-  }, [activeParagraphIndex]);
+  }, [activeParagraphIndex])
 
   // Start playback
   const startPlayback = () => {
@@ -386,7 +390,7 @@ export default function ParagraphHighlighter({ text, title, audioSrc, onParagrap
     <div className="flex flex-col h-full relative" onClick={togglePlayback}>
       {/* Title section - more compact */}
       {title && (
-        <div className="px-6 py-4 mb-2 flex justify-center">
+        <div className="px-6 py-4 mb-0 flex justify-center">
           <div className="max-w-2xl w-full">
             <h1 className="text-2xl md:text-3xl font-bold leading-tight tracking-tight text-white text-center">
               {title}
@@ -399,36 +403,23 @@ export default function ParagraphHighlighter({ text, title, audioSrc, onParagrap
       {/* Main text display with gradient fades */}
       <div className="relative w-full h-[85vh]">
         {/* Top fade gradient - reduced height */}
-        <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-[#3b82f6] to-transparent z-10 pointer-events-none"></div>
+        <div className="absolute top-0 left-0 right-0 h-8 bg-gradient-to-b from-[#3b82f6] to-transparent z-10 pointer-events-none"></div>
 
         {/* Bottom fade gradient */}
         <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-[#3b82f6] to-transparent z-10 pointer-events-none"></div>
 
         <div
           ref={containerRef}
-          className="text-left w-full h-full overflow-y-auto scrollbar-hide px-6"
+          className="text-left w-full h-full overflow-y-auto scrollbar-hide px-6 flex justify-center"
           style={{ scrollbarWidth: "none" }}
         >
-          <div className="py-[40vh]">
+          <div className="py-[20vh] max-w-2xl w-full">
             {/* Render paragraphs */}
             <div className="space-y-8">
               {paragraphs.map((paragraph, index) => (
                 <p
                   key={index}
                   ref={index === activeParagraphIndex ? activeParagraphRef : null}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleParagraphClick(index);
-
-                    // Visual feedback when tapping a paragraph
-                    if (e) {
-                      const target = e.target as HTMLElement;
-                      target.classList.add("tap-animation");
-                      setTimeout(() => {
-                        target.classList.remove("tap-animation");
-                      }, 300);
-                    }
-                  }}
                   className={`text-4xl md:text-5xl lg:text-6xl font-bold leading-tight tracking-tight cursor-pointer transition-colors duration-300 ${
                     index === activeParagraphIndex
                       ? "text-white"
@@ -436,6 +427,7 @@ export default function ParagraphHighlighter({ text, title, audioSrc, onParagrap
                         ? "text-white/60"
                         : "text-white/30"
                   }`}
+                  onClick={() => handleParagraphClick(index)}
                 >
                   {paragraph.text}
                 </p>
