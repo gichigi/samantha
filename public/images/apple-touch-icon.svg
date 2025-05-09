@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="180" height="180" viewBox="0 0 180 180">
+  <!-- Background -->
+  <rect width="180" height="180" fill="#3B82F6" rx="45" ry="45" />
+  
+  <!-- Letter "S" - slightly adjusted for better appearance at small sizes -->
+  <path d="M125 65c0-16-16-25-32-25-18 0-30 7-34 21l22 5c2-5 5-9 12-9 5 0 11 4 11 9 0 14-50 5-50 41 0 16 14 26 32 26 16 0 28-7 32-19l-22-5c-2 5-5 9-11 9-5 0-11-2-11-9 0-12 50-5 50-39z" fill="white" />
+  
+  <!-- Decorative Sound Wave Lines -->
+  <path d="M32 90 H52" stroke="white" stroke-width="4" stroke-linecap="round" />
+  <path d="M23 90 H28" stroke="white" stroke-width="3" stroke-linecap="round" />
+  <path d="M128 90 H148" stroke="white" stroke-width="4" stroke-linecap="round" />
+  <path d="M152 90 H157" stroke="white" stroke-width="3" stroke-linecap="round" />
+</svg> 
