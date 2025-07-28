@@ -25,76 +25,28 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
 
-    // Check if user has reached their daily limit
-    const { data: userData, error: userError } = await supabase
-      .from("users")
-      .select("daily_word_limit, words_used_today, last_usage_date")
-      .eq("id", userId)
+    // Check daily extraction limit using daily_usage table
+    const today = new Date().toISOString().split('T')[0]
+    const { data: usageData } = await supabase
+      .from("daily_usage")
+      .select("extraction_count")
+      .eq("user_id", userId)
+      .eq("usage_date", today)
       .single()
 
-    if (userError) {
-      console.error("Error fetching user data:", userError)
-      return NextResponse.json({ error: "Failed to fetch user data" }, { status: 500 })
-    }
+    const dailyLimit = 3
+    const usedToday = usageData?.extraction_count || 0
 
-    // If user doesn't exist in our users table yet, create them
-    if (!userData) {
-      // Get user details from auth
-      const { data: authUser } = await supabase.auth.admin.getUserById(userId)
-
-      if (!authUser?.user) {
-        return NextResponse.json({ error: "User not found" }, { status: 404 })
-      }
-
-      // Insert the user
-      const { error: insertError } = await supabase.from("users").insert({
-        id: userId,
-        email: authUser.user.email || "",
-        display_name: authUser.user.user_metadata.full_name || "",
-        daily_word_limit: 10000,
-        words_used_today: 0,
-        last_usage_date: new Date().toISOString().split("T")[0],
-      })
-
-      if (insertError) {
-        console.error("Error creating user:", insertError)
-        return NextResponse.json({ error: "Failed to create user" }, { status: 500 })
-      }
-    } else {
-      // Check if this is a new day
-      const today = new Date().toISOString().split("T")[0]
-
-      if (userData.last_usage_date < today) {
-        // Reset the counter for a new day
-        await supabase
-          .from("users")
-          .update({
-            words_used_today: wordCount,
-            last_usage_date: today,
-          })
-          .eq("id", userId)
-      } else {
-        // Check if adding this article would exceed the daily limit
-        if (userData.words_used_today + wordCount > userData.daily_word_limit) {
-          return NextResponse.json(
-            {
-              error: "Daily word limit exceeded",
-              limit: userData.daily_word_limit,
-              used: userData.words_used_today,
-              remaining: userData.daily_word_limit - userData.words_used_today,
-            },
-            { status: 429 },
-          )
-        }
-
-        // Update the word count
-        await supabase
-          .from("users")
-          .update({
-            words_used_today: userData.words_used_today + wordCount,
-          })
-          .eq("id", userId)
-      }
+    if (usedToday >= dailyLimit) {
+      return NextResponse.json(
+        {
+          error: "Daily extraction limit exceeded",
+          limit: dailyLimit,
+          used: usedToday,
+          remaining: 0,
+        },
+        { status: 429 },
+      )
     }
 
     // Record the reading history
@@ -159,17 +111,15 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Failed to fetch reading history" }, { status: 500 })
     }
 
-    // Get user's usage stats
-    const { data: userData, error: userError } = await supabase
-      .from("users")
-      .select("daily_word_limit, words_used_today")
-      .eq("id", userId)
+    // Get user's usage stats from daily_usage table instead
+    const { data: usageData } = await supabase
+      .from("daily_usage")
+      .select("extraction_count")
+      .eq("user_id", userId)
+      .eq("usage_date", new Date().toISOString().split('T')[0])
       .single()
 
-    if (userError) {
-      console.error("Error fetching user data:", userError)
-      return NextResponse.json({ error: "Failed to fetch user data" }, { status: 500 })
-    }
+    const usedToday = usageData?.extraction_count || 0
 
     return NextResponse.json({
       data,
@@ -181,9 +131,9 @@ export async function GET(request: Request) {
         pages: Math.ceil(count / limit),
       },
       usage: {
-        limit: userData?.daily_word_limit || 10000,
-        used: userData?.words_used_today || 0,
-        remaining: (userData?.daily_word_limit || 10000) - (userData?.words_used_today || 0),
+        limit: 3, // Daily extraction limit
+        used: usedToday,
+        remaining: Math.max(0, 3 - usedToday),
       },
     })
   } catch (error: any) {

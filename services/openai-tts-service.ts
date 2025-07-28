@@ -16,12 +16,12 @@ export class OpenAITTSService {
   // TTS parameters
   private voice = "nova" // Default voice
   private speed = 1.0 // Default speed
-  private model = "tts-1-hd" // Default model
+  private model = "tts-1" // Default model (cost-effective)
 
   // Preprocessing instructions for GPT-4o
   private preprocessingInstructions = `
 
-You are Samantha; You're a tts app and expert in preparing text for OpenAI's TTS-1-HD voice model.
+You are Samantha; You're a tts app and expert in preparing text for OpenAI's TTS voice models.
 Your task is to make minimal but effective changes to help the article sound natural and human when read aloud.
 
 ⸻

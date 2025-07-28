@@ -85,7 +85,7 @@ export default function TimestampDemoPage() {
             text: fullText,
             voice: "nova",
             speed: 1.0,
-            model: "tts-1-hd",
+            model: "tts-1",
           }),
         })
 

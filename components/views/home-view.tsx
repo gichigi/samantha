@@ -1,14 +1,16 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { BookOpen, Brain, Sparkles, History } from "lucide-react"
 import TextCard from "@/components/text-card"
 import UrlInput from "@/components/url-input"
+import { LoginForm } from "@/components/login-form"
 import Link from "next/link"
 import { sampleTexts } from "@/data/sample-texts"
 import { useReader } from "@/contexts/reader-context"
 import { useUrlExtraction } from "@/hooks/use-url-extraction"
 import { useViewState } from "@/hooks/use-view-state"
+import { useAuth } from "@/contexts/auth-context"
 
 export default function HomeView() {
   const {
@@ -21,8 +23,31 @@ export default function HomeView() {
   } = useReader()
 
   const { transitionTo } = useViewState()
-  const { isLoading, extractUrl } = useUrlExtraction()
+  const { isLoading, extractUrl, error: extractionError } = useUrlExtraction()
+  const { user, isLoading: authLoading } = useAuth()
   const [error, setError] = useState<string | null>(null)
+  const [showAuthPrompt, setShowAuthPrompt] = useState(false)
+
+  // Listen for auth prompt trigger from navbar
+  useEffect(() => {
+    const handleAuthPromptTrigger = () => {
+      if (!user) {
+        setShowAuthPrompt(true)
+        setError(null)
+      }
+    }
+
+    window.addEventListener('trigger-auth-prompt', handleAuthPromptTrigger)
+    return () => window.removeEventListener('trigger-auth-prompt', handleAuthPromptTrigger)
+  }, [user])
+
+  // Hide auth prompt when user logs in
+  useEffect(() => {
+    if (user) {
+      setShowAuthPrompt(false)
+      setError(null)
+    }
+  }, [user])
 
   const handleSelectSampleText = (index: number) => {
     // For all sample texts, use timestamp-based highlighting
@@ -137,8 +162,16 @@ export default function HomeView() {
   }
 
   const handleUrlSubmit = async (url: string) => {
+    // Check if user is authenticated
+    if (!user) {
+      setShowAuthPrompt(true)
+      setError(null) // Don't show error, just show login form
+      return
+    }
+
     transitionTo("loading")
     setError(null)
+    setShowAuthPrompt(false)
 
     const extractedData = await extractUrl(url)
 
@@ -154,6 +187,24 @@ export default function HomeView() {
       // Transition to reading view
       transitionTo("reading")
     } else {
+      // Handle specific extraction errors with user-friendly messages
+      if (extractionError) {
+        if (extractionError.code === "AUTHENTICATION_REQUIRED") {
+          setShowAuthPrompt(true)
+          setError("Please sign in to continue")
+        } else if (extractionError.code === "USAGE_LIMIT_EXCEEDED") {
+          setError(`Daily limit reached! ${extractionError.suggestion}`)
+        } else if (extractionError.code === "UNSUPPORTED_FILE_TYPE") {
+          setError("Can't read this file type. Try copying a web article URL instead.")
+        } else if (extractionError.code === "CONTENT_TOO_LONG") {
+          setError("This article is too long. Please try a shorter article (under 10,000 words).")
+        } else if (extractionError.code === "INVALID_URL") {
+          setError("Invalid URL. Please paste a complete web address (like https://example.com/article).")
+        } else {
+          setError("Couldn't extract this content. Please try a different article URL.")
+        }
+      }
+      
       // If extraction failed, go back to home
       transitionTo("home")
     }
@@ -174,40 +225,49 @@ export default function HomeView() {
         </div>
       )}
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full max-w-2xl mb-10">
-        <TextCard
-          title="Introduction"
-          icon={<BookOpen />}
-          wordCount={sampleTexts[0].wordCount}
-          readingTime={sampleTexts[0].readingTime}
-          onClick={() => handleSelectSampleText(0)}
-        />
-        <TextCard
-          title="AI Future"
-          icon={<Brain />}
-          wordCount={sampleTexts[1].wordCount}
-          readingTime={sampleTexts[1].readingTime}
-          onClick={() => handleSelectSampleText(1)}
-        />
-        <TextCard
-          title="Mindfulness"
-          icon={<Sparkles />}
-          wordCount={sampleTexts[2].wordCount}
-          readingTime={sampleTexts[2].readingTime}
-          onClick={() => handleSelectSampleText(2)}
-        />
-        <TextCard
-          title="Internet History"
-          icon={<History />}
-          wordCount={sampleTexts[3].wordCount}
-          readingTime={sampleTexts[3].readingTime}
-          onClick={() => handleSelectSampleText(3)}
-        />
-      </div>
+      {/* Show login form if auth is required */}
+      {showAuthPrompt && !user ? (
+        <div className="w-full max-w-md mb-8">
+          <LoginForm />
+        </div>
+      ) : (
+        <>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full max-w-2xl mb-10">
+            <TextCard
+              title="Introduction"
+              icon={<BookOpen />}
+              wordCount={sampleTexts[0].wordCount}
+              readingTime={sampleTexts[0].readingTime}
+              onClick={() => handleSelectSampleText(0)}
+            />
+            <TextCard
+              title="AI Future"
+              icon={<Brain />}
+              wordCount={sampleTexts[1].wordCount}
+              readingTime={sampleTexts[1].readingTime}
+              onClick={() => handleSelectSampleText(1)}
+            />
+            <TextCard
+              title="Mindfulness"
+              icon={<Sparkles />}
+              wordCount={sampleTexts[2].wordCount}
+              readingTime={sampleTexts[2].readingTime}
+              onClick={() => handleSelectSampleText(2)}
+            />
+            <TextCard
+              title="Internet History"
+              icon={<History />}
+              wordCount={sampleTexts[3].wordCount}
+              readingTime={sampleTexts[3].readingTime}
+              onClick={() => handleSelectSampleText(3)}
+            />
+          </div>
 
-      <div className="w-full max-w-xl">
-      <UrlInput onSubmit={handleUrlSubmit} isLoading={isLoading} />
-      </div>
+          <div className="w-full max-w-xl">
+            <UrlInput onSubmit={handleUrlSubmit} isLoading={isLoading} />
+          </div>
+        </>
+      )}
     </main>
   )
 }

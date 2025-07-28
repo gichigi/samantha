@@ -124,7 +124,7 @@ In the future, Samantha will be able to read any webpage you provide, (pause:0.2
       const ttsService = getOpenAITTSService()
 
       // Set to HD model
-      ttsService.setModel("tts-1-hd")
+      ttsService.setModel("tts-1")
 
       // Prepare audio with the processed text
       await ttsService.prepareWithText(processedText)
@@ -171,7 +171,7 @@ In the future, Samantha will be able to read any webpage you provide, (pause:0.2
             </Link>
             <h1 className="text-xl md:text-2xl font-bold">Enhanced TTS Preprocessing</h1>
           </div>
-          <div className="text-sm">Using TTS-1-HD</div>
+                        <div className="text-sm">Using TTS-1 (Standard)</div>
         </div>
 
         {/* Main content */}

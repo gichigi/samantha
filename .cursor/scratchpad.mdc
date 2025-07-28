@@ -29,6 +29,23 @@ alwaysApply: true
    - [x] Voice settings
    - [x] Theme support
 
+## Latest Fixes (Current Session)
+- [x] **Removed GitHub OAuth** - Google only now
+- [x] **Fixed login title** - "Sign in to Samantha" 
+- [x] **Fixed navbar sign in** - Now triggers login form properly
+- [x] **Removed error messages** - Clean login flow without blue notifications
+- [x] **Added auth prompt listener** - Navbar sign in shows login form immediately
+
+## URL Validation & Content Limits (NEW)
+- [x] **PDF blocking** - Prevents PDF extraction (too expensive)
+- [x] **File type validation** - Blocks docs, spreadsheets, archives
+- [x] **URL format validation** - Ensures proper http/https URLs
+- [x] **10,000 word limit** - Rejects articles that are too long
+- [x] **User-friendly errors** - Clear messages for each validation type
+- [x] **Client-side validation** - Immediate feedback in URL input
+- [x] **Server-side validation** - Security + cost protection
+- [x] **Human-friendly messaging** - No error codes, clear next steps
+
 3. Future Enhancements
    - [ ] Export functionality
    - [ ] Advanced voice options
@@ -46,7 +63,66 @@ alwaysApply: true
 - [ ] Error Handling
 - [ ] UX Enhancements
 
-## Current Focus: Content Extraction Improvements
+## Current Focus: Supabase Auth with SSO Implementation
+
+### Authentication & Usage Limits Plan
+
+**Goal:** Implement Supabase auth with SSO, require login for extraction, limit to 3 articles per day.
+
+**Implementation Tasks:**
+
+#### 1. Setup Supabase Auth Configuration
+- [x] Database restored and accessible
+- [x] Configure OAuth providers in Supabase dashboard (need to configure in dashboard)
+- [x] Set up auth callback URLs
+- [x] Update environment variables
+
+#### 2. Update Auth Components
+- [x] Replace custom auth with Supabase auth
+- [x] Add SSO login options (Google, GitHub)
+- [x] Update login/logout components
+- [x] Add auth state management
+
+#### 3. Implement Usage Tracking
+- [x] Create daily_usage table in database
+- [x] Track article extractions per user per day
+- [x] Add usage limit checking logic
+- [x] Display usage status to user
+
+#### 4. Update UI Flow
+- [x] Show login prompt when extraction attempted without auth
+- [x] Add logout dropdown in nav
+- [x] Show usage count/limit in UI
+- [x] Handle limit exceeded gracefully
+
+#### 5. Protect API Routes
+- [x] Add auth middleware to extraction endpoints
+- [x] Validate user session on each request
+- [x] Check usage limits before processing
+- [x] Return appropriate errors for auth/limit issues
+
+**Database Schema Changes:**
+```sql
+-- Track daily article extraction usage
+CREATE TABLE daily_usage (
+  id SERIAL PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id),
+  usage_date DATE DEFAULT CURRENT_DATE,
+  extraction_count INTEGER DEFAULT 0,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW(),
+  UNIQUE(user_id, usage_date)
+);
+```
+
+**Success Criteria:**
+- Users must log in to extract articles
+- Usage limited to 3 extractions per day
+- Clean SSO login experience
+- Clear usage feedback in UI
+- Secure API protection
+
+## Previous Focus: Content Extraction Improvements
 
 ### Content Extraction Quick Wins Plan
 

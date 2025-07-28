@@ -1,8 +1,41 @@
 import { NextResponse } from "next/server"
 import { getContentExtractionService, ExtractionErrorType } from "@/services/content-extraction-service"
+import { createClient } from "@/utils/supabase/server"
+import { UsageTrackerService } from "@/services/usage-tracker-service"
 
 export async function POST(request: Request) {
   try {
+    // Check authentication
+    const supabase = await createClient()
+    const { data: { session } } = await supabase.auth.getSession()
+    
+    if (!session?.user) {
+      return NextResponse.json({ 
+        error: {
+          code: "AUTHENTICATION_REQUIRED",
+          message: "Authentication required to extract content",
+          suggestion: "Please sign in to continue using the content extraction feature."
+        }
+      }, { status: 401 })
+    }
+
+    const userId = session.user.id
+
+    // Check usage limits
+    const canExtract = await UsageTrackerService.canUserExtract(userId)
+    if (!canExtract) {
+      const usage = await UsageTrackerService.getUserUsage(userId)
+      return NextResponse.json({ 
+        error: {
+          code: "USAGE_LIMIT_EXCEEDED",
+          message: `Daily extraction limit reached (${usage.limit} articles per day)`,
+          suggestion: `You have used all ${usage.limit} daily extractions. Limit resets at midnight.`,
+          resetDate: usage.resetDate,
+          usage
+        }
+      }, { status: 429 })
+    }
+
     // Parse request body
     let body
     try {
@@ -32,6 +65,43 @@ export async function POST(request: Request) {
 
     console.log(`Extracting content from URL: ${url}`)
 
+    // Additional URL validation on server side
+    try {
+      const urlObj = new URL(url)
+      const pathname = urlObj.pathname.toLowerCase()
+      
+      // Block PDF files - they're expensive to process
+      if (pathname.endsWith('.pdf')) {
+        return NextResponse.json({ 
+          error: {
+            code: "UNSUPPORTED_FILE_TYPE",
+            message: "PDF files are not supported",
+            suggestion: "Please try a web article instead. PDFs are too expensive to process."
+          }
+        }, { status: 400 })
+      }
+
+      // Block other document types
+      const unsupportedExtensions = ['.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.zip', '.rar']
+      if (unsupportedExtensions.some(ext => pathname.endsWith(ext))) {
+        return NextResponse.json({ 
+          error: {
+            code: "UNSUPPORTED_FILE_TYPE",
+            message: "Document files are not supported",
+            suggestion: "Please use a web article URL instead."
+          }
+        }, { status: 400 })
+      }
+    } catch (urlError) {
+      return NextResponse.json({ 
+        error: {
+          code: "INVALID_URL",
+          message: "Invalid URL format",
+          suggestion: "Please provide a valid web URL (e.g., https://example.com/article)"
+        }
+      }, { status: 400 })
+    }
+
     // Get the content extraction service
     const extractionService = getContentExtractionService({
       // Configure service options
@@ -42,6 +112,18 @@ export async function POST(request: Request) {
     try {
       // Extract content using our improved service
       const extractionResult = await extractionService.extractContent(url)
+
+      // Check word count limit (10,000 words max)
+      const MAX_WORDS = 10000
+      if (extractionResult.wordCount && extractionResult.wordCount > MAX_WORDS) {
+        return NextResponse.json({ 
+          error: {
+            code: "CONTENT_TOO_LONG",
+            message: `Article is too long (${extractionResult.wordCount.toLocaleString()} words)`,
+            suggestion: `Please try a shorter article. Maximum length is ${MAX_WORDS.toLocaleString()} words to keep costs reasonable.`
+          }
+        }, { status: 413 }) // 413 Payload Too Large
+      }
 
       // Log extraction info for debugging
       if (extractionResult.extractionInfo) {
@@ -54,14 +136,38 @@ export async function POST(request: Request) {
         }
       }
 
-      // Return the extracted content
+      // Save to reading history
+      const { error: historyError } = await supabase
+        .from("reading_history")
+        .insert({
+          user_id: userId,
+          article_url: url,
+          title: extractionResult.title || "Untitled Article",
+          word_count: extractionResult.wordCount || 0,
+        })
+
+      if (historyError) {
+        console.error("Error saving to reading history:", historyError)
+        // Don't fail the request, but log it properly
+      } else {
+        console.log("Successfully saved to reading history")
+      }
+
+      // Increment usage count after successful extraction
+      await UsageTrackerService.incrementUsage(userId)
+      
+      // Get updated usage status to return to client
+      const updatedUsage = await UsageTrackerService.getUserUsage(userId)
+
+      // Return the extracted content with usage info
       return NextResponse.json({
         title: extractionResult.title,
         content: extractionResult.content,
         byline: extractionResult.byline,
         siteName: extractionResult.siteName,
         wordCount: extractionResult.wordCount,
-        extractionInfo: extractionResult.extractionInfo
+        extractionInfo: extractionResult.extractionInfo,
+        usage: updatedUsage
       })
       
     } catch (error) {

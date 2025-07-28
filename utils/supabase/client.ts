@@ -7,11 +7,13 @@ export const createClient = () => {
     {
       cookies: {
         get(name) {
+          if (typeof document === 'undefined') return undefined
           const cookies = document.cookie.split('; ')
           const cookie = cookies.find(c => c.startsWith(`${name}=`))
           return cookie ? cookie.split('=')[1] : undefined
         },
         set(name, value, options) {
+          if (typeof document === 'undefined') return
           let cookie = `${name}=${value}`
           if (options?.maxAge) {
             cookie += `; Max-Age=${options.maxAge}`
@@ -22,6 +24,7 @@ export const createClient = () => {
           document.cookie = cookie
         },
         remove(name, options) {
+          if (typeof document === 'undefined') return
           document.cookie = `${name}=; Max-Age=0${options?.path ? `; Path=${options.path}` : ''}`
         }
       }
