@@ -107,11 +107,10 @@ export default function VoiceSettings({ onSettingsChanged }: VoiceSettingsProps)
                 onChange={handleModelChange}
                 className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               >
-                <option value="tts-1">Standard (Fast & Cost-Effective)</option>
-                <option value="tts-1-hd">HD (Higher Quality, 2x Cost)</option>
+                <option value="tts-1">Standard (Cost-Effective)</option>
               </select>
               <div className="text-xs text-gray-500 mt-1">
-                {settings.model === "tts-1-hd" ? "⚠️ Using HD model (more expensive)" : "✅ Using standard model (cost-effective)"}
+                ✅ Using standard model (cost-effective)
               </div>
             </div>
           </div>

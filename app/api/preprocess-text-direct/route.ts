@@ -45,25 +45,9 @@ export async function POST(request: Request) {
       temperature: 0.6, // Using the updated temperature value as requested
     }
 
-    // Set model-specific parameters
-    switch (model) {
-      case "gpt-4o":
-        requestBody.model = "gpt-4o"
-        requestBody.max_tokens = 4000
-        break
-      case "gpt-4.5-preview":
-        requestBody.model = "gpt-4.5-preview"
-        requestBody.max_tokens = 4000
-        break
-      case "gpt-o3":
-        requestBody.model = "gpt-o3"
-        requestBody.max_tokens = 4000
-        break
-      default:
-        // Default to gpt-4.5-preview
-        requestBody.model = "gpt-4.5-preview"
-        requestBody.max_tokens = 4000
-    }
+    // Always use gpt-4o-mini for cost-effectiveness
+    requestBody.model = "gpt-4o-mini"
+    requestBody.max_tokens = 4000
 
     try {
       // Call OpenAI Chat API directly using fetch

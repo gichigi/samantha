@@ -18,7 +18,7 @@ export class OpenAITTSService {
   private speed = 1.0 // Default speed
   private model = "tts-1" // Default model (cost-effective)
 
-  // Preprocessing instructions for GPT-4o
+  // Preprocessing instructions for GPT-4o-mini
   private preprocessingInstructions = `
 
 You are Samantha; You're a tts app and expert in preparing text for OpenAI's TTS voice models.
@@ -177,7 +177,7 @@ Ensure you preserve paragraph structure with proper line breaks.
   }
 
   // Preprocess text using selected GPT model
-  public async preprocessText(text: string, model = "gpt-4o"): Promise<string> {
+  public async preprocessText(text: string, model = "gpt-4o-mini"): Promise<string> {
     // Initialize model cache if it doesn't exist
     if (!OpenAITTSService.preprocessCache.has(model)) {
       OpenAITTSService.preprocessCache.set(model, new Map())
@@ -246,7 +246,7 @@ Ensure you preserve paragraph structure with proper line breaks.
     } = {},
   ): Promise<string> {
     const skipPreprocessing = options.skipPreprocessing || false
-    const preprocessModel = options.preprocessModel || "gpt-4o"
+    const preprocessModel = options.preprocessModel || "gpt-4o-mini"
 
     this.text = text
     this.totalWords = text.split(" ").length
@@ -282,25 +282,9 @@ Ensure you preserve paragraph structure with proper line breaks.
         console.log("Skipping preprocessing as requested")
       }
 
-      // Handle GPT-4o-TTS model differently
-      if (this.model === "gpt-4o-tts") {
-        // Check if text is too long for context window
-        if (processedText.length > 2000) {
-          console.warn("Text may exceed GPT-4o-TTS context window of 2000 tokens")
-        }
-
-        // Generate audio directly with GPT-4o-TTS
-        const audioBlob = await this.generateGPT4oTTSAudio(processedText)
-
-        // Create URL for the blob
-        if (this.audioUrl) {
-          URL.revokeObjectURL(this.audioUrl)
-        }
-        this.audioUrl = URL.createObjectURL(audioBlob)
-      } else {
-        // Standard TTS process with OpenAI models
-        // Check if text needs to be chunked
-        if (processedText.length > 4000) {
+      // Standard TTS process with OpenAI tts-1 model
+      // Check if text needs to be chunked
+      if (processedText.length > 4000) {
           console.log("Text exceeds OpenAI's character limit. Chunking text...")
           this.textChunks = chunkText(processedText)
           console.log(`Text split into ${this.textChunks.length} chunks`)
@@ -388,20 +372,9 @@ Ensure you preserve paragraph structure with proper line breaks.
         this.onProgressUpdate(50)
       }
 
-      // Handle GPT-4o-TTS model differently
-      if (this.model === "gpt-4o-tts") {
-        // Generate audio directly with GPT-4o-TTS
-        const audioBlob = await this.generateGPT4oTTSAudio(text)
-
-        // Create URL for the blob
-        if (this.audioUrl) {
-          URL.revokeObjectURL(this.audioUrl)
-        }
-        this.audioUrl = URL.createObjectURL(audioBlob)
-      } else {
-        // Standard TTS process with OpenAI models
-        // Check if text needs to be chunked
-        if (text.length > 4000) {
+      // Standard TTS process with OpenAI tts-1 model
+      // Check if text needs to be chunked
+      if (text.length > 4000) {
           console.log("Text exceeds OpenAI's character limit. Chunking text...")
           this.textChunks = chunkText(text)
           console.log(`Text split into ${this.textChunks.length} chunks`)
@@ -448,7 +421,6 @@ Ensure you preserve paragraph structure with proper line breaks.
           }
           this.audioUrl = URL.createObjectURL(audioBlob)
         }
-      }
 
       // Set the audio source
       if (this.audio && this.audioUrl) {
@@ -819,12 +791,10 @@ Ensure you preserve paragraph structure with proper line breaks.
     this.speed = speed
   }
 
-  // Set model (tts-1, tts-1-hd, gpt-4o-tts)
+  // Set model (only tts-1 supported for cost-effectiveness)
   public setModel(model: string): void {
-    if (model !== "tts-1" && model !== "tts-1-hd" && model !== "gpt-4o-tts") {
-      model = "tts-1"
-    }
-    this.model = model
+    // Always use tts-1 (cost-effective model)
+    this.model = "tts-1"
   }
 
   // Get current settings
