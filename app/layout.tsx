@@ -2,7 +2,6 @@ import type React from "react"
 import "./globals.css"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
-import { AuthProvider } from "@/contexts/auth-context"
 import { ReaderProvider } from "@/contexts/reader-context"
 import { ViewStateProvider } from "@/contexts/view-state-context"
 import Navbar from "@/components/navbar"
@@ -17,12 +16,12 @@ const inter = Inter({
 
 // Setup metadata for social sharing and SEO
 export const metadata: Metadata = {
-  title: 'Samantha - Listen to articles read aloud with natural voice',
-  description: 'Samantha reads articles aloud with a natural, expressive voice. Convert any article into audio and enjoy it while commuting, exercising, or relaxing.',
+  title: 'Samantha - She reads the internet, out loud, just for you',
+  description: 'A text-to-speech reading app inspired by the movie Her. Zero-text UI, powered by OpenAI. No authentication required.',
   metadataBase: new URL('https://samantha.vercel.app'),
   openGraph: {
     title: 'Samantha - She reads the internet, out loud, just for you',
-    description: 'Transform your reading list into a personal podcast with advanced neural voice technology',
+    description: 'A text-to-speech reading app inspired by the movie Her. Zero-text UI, powered by OpenAI.',
     url: 'https://samantha.vercel.app',
     siteName: 'Samantha',
     images: [
@@ -30,7 +29,7 @@ export const metadata: Metadata = {
         url: '/images/og-image.jpg',
         width: 1200,
         height: 630,
-        alt: 'Samantha - Listen to articles read aloud',
+        alt: 'Samantha - She reads the internet, out loud',
       }
     ],
     locale: 'en_US',
@@ -39,7 +38,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Samantha - She reads the internet, out loud',
-    description: 'Transform your reading list into a personal podcast with advanced neural voice technology',
+    description: 'A text-to-speech reading app inspired by the movie Her. Zero-text UI, powered by OpenAI.',
     images: ['/images/og-image.jpg'],
   },
   icons: {
@@ -60,14 +59,12 @@ export default function RootLayout({
         <link rel="icon" href="/images/favicon.svg" type="image/svg+xml" />
       </head>
       <body className={`${inter.variable} font-sans`}>
-        <AuthProvider>
-          <ViewStateProvider>
-            <ReaderProvider>
-              <Navbar />
-              {children}
-            </ReaderProvider>
-          </ViewStateProvider>
-        </AuthProvider>
+        <ViewStateProvider>
+          <ReaderProvider>
+            <Navbar />
+            {children}
+          </ReaderProvider>
+        </ViewStateProvider>
       </body>
     </html>
   )

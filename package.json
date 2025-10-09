@@ -1,7 +1,26 @@
 {
-  "name": "my-v0-project",
-  "version": "0.1.0",
-  "private": true,
+  "name": "samantha",
+  "version": "1.0.0",
+  "description": "A text-to-speech reading app inspired by the movie Her. Zero-text UI, no authentication required.",
+  "author": "gichigi",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gichigi/samantha.git"
+  },
+  "homepage": "https://github.com/gichigi/samantha",
+  "bugs": {
+    "url": "https://github.com/gichigi/samantha/issues"
+  },
+  "keywords": [
+    "text-to-speech",
+    "tts",
+    "reading",
+    "accessibility",
+    "openai",
+    "nextjs",
+    "zero-text-ui"
+  ],
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -37,10 +56,6 @@
     "@radix-ui/react-toggle": "1.1.1",
     "@radix-ui/react-toggle-group": "1.1.1",
     "@radix-ui/react-tooltip": "1.1.6",
-    "@supabase/auth-ui-react": "^0.4.7",
-    "@supabase/auth-ui-shared": "^0.1.8",
-    "@supabase/ssr": "^0.6.1",
-    "@supabase/supabase-js": "latest",
     "autoprefixer": "^10.4.20",
     "cheerio": "latest",
     "class-variance-authority": "^0.7.1",

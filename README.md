@@ -1,67 +1,184 @@
 # Samantha
 
-A modern web application for enhanced reading experience with built-in text tracking and audio features.
+> _She reads the internet, out loud, just for you._
 
-## Features
+A text-to-speech reading app inspired by the movie "Her." Samantha converts web articles into natural-sounding audio using OpenAI's advanced neural voices. With a zero-text UI and no authentication required, it's designed to be universal, intuitive, and delightful.
 
-- **Multiple View States**: Home, Loading, and Reader views
-- **Text Tracking**: Track reading progress across articles
-- **Audio Support**: Listen to text content with audio playback
-- **User Authentication**: Secure login with Supabase authentication
-- **Responsive Design**: Smooth experience across devices
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![Next.js](https://img.shields.io/badge/Next.js-15.2-black)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)
 
-## Tech Stack
+## ✨ Features
 
-- **Frontend**: Next.js 15.2.4, React 19
-- **UI Components**: Radix UI, Tailwind CSS
-- **Authentication**: Supabase Auth
-- **State Management**: React Context API
-- **Form Handling**: React Hook Form with Zod validation
+- 🎯 **Zero-Text UI** - Universal interface using only icons and numbers
+- 🎙️ **Natural Voice** - Powered by OpenAI's advanced text-to-speech
+- 🌐 **Any Article** - Extract and read content from any URL
+- 🔓 **No Authentication** - No sign-ups, no tracking, just reading
+- 📊 **Local Storage** - Everything stored locally, 3 articles per day
+- 🎨 **Beautiful Design** - Warm, empathetic interface inspired by "Her"
+- ♿ **Accessible** - Full screen reader support with ARIA labels
 
-## Getting Started
+## 🚀 Quick Start
 
 ### Prerequisites
 
-- Node.js (v18 or higher)
-- pnpm package manager
+- Node.js 18+ 
+- pnpm (or npm)
+- OpenAI API key ([get one here](https://platform.openai.com/api-keys))
 
 ### Installation
 
-1. Clone the repository
-   ```bash
-   git clone https://github.com/gichigi/samantha.git
-   cd samantha
-   ```
+```bash
+# Clone the repository
+git clone https://github.com/gichigi/samantha.git
+cd samantha
 
-2. Install dependencies
-   ```bash
-   pnpm install
-   ```
+# Install dependencies
+pnpm install
 
-3. Create a `.env.local` file with your environment variables
-   ```
-   # Example environment variables
-   NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-   ```
+# Set up environment variables
+cp .env.example .env.local
+# Add your OpenAI API key to .env.local
 
-4. Start the development server
-   ```bash
-   pnpm run dev
-   ```
+# Start the development server
+pnpm dev
+```
 
-5. Open [http://localhost:3000](http://localhost:3000) in your browser
+Open [http://localhost:3000](http://localhost:3000) and start listening!
 
-## Usage
+## 🎭 The Zero-Text Philosophy
 
-- **Home View**: Browse and select content to read
-- **Reader View**: Enjoy distraction-free reading with progress tracking
-- **Audio Playback**: Convert articles to audio for hands-free consumption
+Samantha's interface uses **no text** - only icons, numbers, and interactions. This isn't minimalism for its own sake. It's about:
 
-## License
+- **Universal Design** - Works for everyone, regardless of language
+- **Natural Interaction** - Like using a musical instrument
+- **Focus on Content** - The article matters, not the UI
+- **Pure Simplicity** - Removing complexity reveals clarity
 
-[MIT](LICENSE)
+Every icon, every number, every animation is carefully chosen to transcend words. Hover states and `aria-labels` provide context for those who need it, but the core experience speaks in a universal language.
 
-## Contact
+## 🎨 Design Inspiration
 
-For any inquiries, please open an issue in this repository. 
+Samantha's personality comes from the AI character in "Her" (2013):
+- Warm and empathetic
+- Present but not intrusive  
+- Curious and genuinely interested
+- Subtly witty, never sarcastic
+- Patient and understanding
+
+See [`BRAND_VOICE.md`](./BRAND_VOICE.md) for detailed design principles.
+
+## 🛠️ Tech Stack
+
+- **Framework**: Next.js 15.2 (App Router)
+- **Language**: TypeScript 5
+- **Styling**: Tailwind CSS
+- **UI Components**: Radix UI
+- **Text-to-Speech**: OpenAI TTS API
+- **Content Extraction**: Cheerio + Turndown
+- **Storage**: localStorage (no database required)
+
+## 📖 Usage
+
+### Reading Sample Articles
+
+Click any sample article card on the homepage. Each shows:
+- An icon representing the topic
+- A number (reading time in minutes)
+
+Audio is generated on-demand and doesn't count toward your daily limit.
+
+### Reading Custom Articles
+
+1. Paste any article URL in the input field
+2. Click the arrow button (→)
+3. Wait for extraction and TTS generation
+4. Listen!
+
+**Daily Limit**: 3 custom articles per day (resets at midnight). Sample articles are unlimited.
+
+### Viewing History
+
+Click the clock icon in the navbar to see your reading history. All stored locally in your browser.
+
+## 🔧 Configuration
+
+### Environment Variables
+
+Only one environment variable is required:
+
+```env
+OPENAI_API_KEY=your_api_key_here
+```
+
+Get your API key from [OpenAI Platform](https://platform.openai.com/api-keys).
+
+### Daily Limits
+
+To change the daily article limit, edit `/services/local-usage-service.ts`:
+
+```typescript
+private static readonly DAILY_LIMIT = 3  // Change this number
+```
+
+### Voice Settings
+
+Samantha uses OpenAI's `nova` voice by default. To change it, edit `/app/api/tts/route.ts`:
+
+```typescript
+const voice = body.voice || "nova"  // Options: alloy, echo, fable, onyx, nova, shimmer
+```
+
+## 🤝 Contributing
+
+We welcome contributions! Please see [`CONTRIBUTING.md`](./CONTRIBUTING.md) for guidelines.
+
+Quick tips:
+- Keep the zero-text UI intact
+- Add comprehensive `aria-label` attributes
+- Follow Samantha's warm, empathetic personality
+- Test with screen readers
+- Write clear code comments
+
+## 🐛 Troubleshooting
+
+### "Daily limit reached"
+Your local usage resets at midnight. To reset manually, open DevTools console:
+```javascript
+localStorage.removeItem('samantha_usage')
+```
+
+### TTS not working
+Check that your OpenAI API key is set correctly in `.env.local` and you have credits in your account.
+
+### Article extraction fails
+Some websites block scraping. Try a different article or check the URL is accessible.
+
+### No audio on mobile
+Some mobile browsers require user interaction before playing audio. Tap the play button after loading.
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [`LICENSE`](./LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- Inspired by the movie "Her" (2013)
+- Powered by OpenAI's TTS API
+- Built with Next.js and React
+- UI components from Radix UI
+- Icons from Lucide
+
+## 🌟 Support
+
+If you like Samantha, please:
+- ⭐ Star this repository
+- 🐛 Report bugs via [GitHub Issues](https://github.com/gichigi/samantha/issues)
+- 💡 Suggest features via [GitHub Discussions](https://github.com/gichigi/samantha/discussions)
+- 🤝 Contribute via Pull Requests
+
+---
+
+**Built with ❤️ for everyone who loves listening to the internet**
+
+*"Sometimes I think I have felt everything I'm ever gonna feel. And from here on out, I'm not gonna feel anything new. Just lesser versions of what I've already felt." - Theodore Twombly, "Her"*

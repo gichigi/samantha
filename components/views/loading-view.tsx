@@ -1,7 +1,10 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import LoadingState from "@/components/loading-state"
+import { useState, useEffect, useRef, useCallback } from "react"
+import AudioVisualizer from "@/components/audio-visualizer"
+import { useReader } from "@/contexts/reader-context"
+import { useViewState } from "@/hooks/use-view-state"
+import { useTextProcessing } from "@/hooks/use-text-processing"
 
 interface LoadingViewProps {
   progress?: number
@@ -10,6 +13,37 @@ interface LoadingViewProps {
 
 export default function LoadingView({ progress, message }: LoadingViewProps) {
   const [displayProgress, setDisplayProgress] = useState(progress || 0)
+  const { currentText, audioUrl, setAudioUrl } = useReader()
+  const { transitionTo } = useViewState()
+  const processingStartedRef = useRef(false)
+  
+  // Stable callback that won't change on re-renders
+  const handleAudioReady = useCallback((url: string) => {
+    setAudioUrl(url)
+    
+    // Transition to reader view
+    setTimeout(() => {
+      transitionTo("reading")
+    }, 500)
+  }, [setAudioUrl, transitionTo])
+  
+  // Initialize text processing hook with stable callback
+  const { processText } = useTextProcessing({
+    onAudioReady: handleAudioReady
+  })
+
+  // Generate audio ONCE when we have text and no audio
+  useEffect(() => {
+    // Only process if we have text, no audio, and haven't started yet
+    if (currentText && !audioUrl && !processingStartedRef.current) {
+      processingStartedRef.current = true
+      
+      processText(currentText).catch((error) => {
+        console.error("Audio generation failed:", error)
+        processingStartedRef.current = false
+      })
+    }
+  }, [currentText, audioUrl]) // Only depend on currentText and audioUrl
 
   // Simulate progress if none is provided
   useEffect(() => {
@@ -33,13 +67,22 @@ export default function LoadingView({ progress, message }: LoadingViewProps) {
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-[#3b82f6] p-4">
-      <LoadingState />
+      {/* Animated soundwave for loading */}
+      <div className="mb-8">
+        <AudioVisualizer
+          isLoading={true}
+          isPlaying={false}
+          audioDuration={0}
+          currentTime={0}
+        />
+      </div>
+      
+      {/* Progress indicator - prominent */}
       {displayProgress > 0 && (
-        <div className="mt-4 text-white/80">
-          {displayProgress < 100 ? `Processing: ${displayProgress}%` : "Almost ready..."}
+        <div className="mt-4 text-white text-4xl font-light">
+          {displayProgress < 100 ? `${displayProgress}%` : "Ready"}
         </div>
       )}
-      {message && <div className="mt-2 text-white/60">{message}</div>}
     </main>
   )
 }

@@ -1,41 +1,8 @@
 import { NextResponse } from "next/server"
 import { getContentExtractionService, ExtractionErrorType } from "@/services/content-extraction-service"
-import { createClient } from "@/utils/supabase/server"
-import { UsageTrackerService } from "@/services/usage-tracker-service"
 
 export async function POST(request: Request) {
   try {
-    // Check authentication
-    const supabase = await createClient()
-    const { data: { session } } = await supabase.auth.getSession()
-    
-    if (!session?.user) {
-      return NextResponse.json({ 
-        error: {
-          code: "AUTHENTICATION_REQUIRED",
-          message: "Authentication required to extract content",
-          suggestion: "Please sign in to continue using the content extraction feature."
-        }
-      }, { status: 401 })
-    }
-
-    const userId = session.user.id
-
-    // Check usage limits
-    const canExtract = await UsageTrackerService.canUserExtract(userId)
-    if (!canExtract) {
-      const usage = await UsageTrackerService.getUserUsage(userId)
-      return NextResponse.json({ 
-        error: {
-          code: "USAGE_LIMIT_EXCEEDED",
-          message: `Daily extraction limit reached (${usage.limit} articles per day)`,
-          suggestion: `You have used all ${usage.limit} daily extractions. Limit resets at midnight.`,
-          resetDate: usage.resetDate,
-          usage
-        }
-      }, { status: 429 })
-    }
-
     // Parse request body
     let body
     try {
@@ -136,41 +103,18 @@ export async function POST(request: Request) {
         }
       }
 
-      // Save to reading history
-      const { error: historyError } = await supabase
-        .from("reading_history")
-        .insert({
-          user_id: userId,
-          article_url: url,
-          title: extractionResult.title || "Untitled Article",
-          word_count: extractionResult.wordCount || 0,
-        })
-
-      if (historyError) {
-        console.error("Error saving to reading history:", historyError)
-        // Don't fail the request, but log it properly
-      } else {
-        console.log("Successfully saved to reading history")
-      }
-
-      // Increment usage count after successful extraction
-      await UsageTrackerService.incrementUsage(userId)
-      
-      // Get updated usage status to return to client
-      const updatedUsage = await UsageTrackerService.getUserUsage(userId)
-
-      // Return the extracted content with usage info
+      // Return the extracted content
+      // Note: Usage tracking is now handled client-side with localStorage
       return NextResponse.json({
         title: extractionResult.title,
         content: extractionResult.content,
         byline: extractionResult.byline,
         siteName: extractionResult.siteName,
         wordCount: extractionResult.wordCount,
-        extractionInfo: extractionResult.extractionInfo,
-        usage: updatedUsage
+        extractionInfo: extractionResult.extractionInfo
       })
       
-    } catch (error) {
+    } catch (error: any) {
       // Handle extraction errors with specific error messages and suggestions
       if (error.code) {
         // This is a structured error from our extraction service
@@ -212,7 +156,7 @@ export async function POST(request: Request) {
         }, { status: 500 })
       }
     }
-  } catch (error) {
+  } catch (error: any) {
     // Catch any other unexpected errors
     console.error("Unexpected error in extract-url API route:", error)
     return NextResponse.json({ 

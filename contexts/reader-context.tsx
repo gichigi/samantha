@@ -1,7 +1,7 @@
 "use client"
 
-import { createContext, useContext, useState, useRef, type ReactNode } from "react"
-import { getReadingTrackerService } from "@/services/reading-tracker-service"
+import { createContext, useContext, useState, type ReactNode } from "react"
+import { LocalHistoryService } from "@/services/local-history-service"
 
 interface ReaderContextProps {
   // Content state
@@ -47,23 +47,18 @@ export function ReaderProvider({ children }: { children: ReactNode }) {
   const [activeWordIndex, setActiveWordIndex] = useState(0)
   const [useTimestampHighlighting, setUseTimestampHighlighting] = useState(false)
 
-  // Reading tracker service
-  const readingTrackerRef = useRef<ReturnType<typeof getReadingTrackerService> | null>(null)
-
-  // Initialize reading tracker if needed
-  const getReadingTracker = () => {
-    if (!readingTrackerRef.current && typeof window !== "undefined") {
-      readingTrackerRef.current = getReadingTrackerService()
-    }
-    return readingTrackerRef.current
-  }
-
-  // Track reading
+  // Track reading using localStorage
   const trackReading = async (url: string, title: string, wordCount: number) => {
-    const tracker = getReadingTracker()
-    if (!tracker) return false
-
-    return await tracker.trackReading(url, title, wordCount)
+    try {
+      if (typeof window !== "undefined") {
+        LocalHistoryService.addItem(title, url, wordCount)
+        return true
+      }
+      return false
+    } catch (error) {
+      console.error("Error tracking reading:", error)
+      return false
+    }
   }
 
   // Update word count when text changes

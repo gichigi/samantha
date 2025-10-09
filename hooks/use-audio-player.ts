@@ -20,14 +20,23 @@ export function useAudioPlayer({ audioUrl, onTimeUpdate, onEnded }: UseAudioPlay
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const progressIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const autoplayAttemptedRef = useRef(false)
+  const currentAudioUrlRef = useRef<string | null>(null)
 
   // Initialize audio element
   useEffect(() => {
     if (!audioUrl) {
       setIsReady(false)
+      currentAudioUrlRef.current = null
       return
     }
 
+    // Skip if this is the same URL we already loaded AND audio is ready
+    if (currentAudioUrlRef.current === audioUrl && isReady) {
+      return
+    }
+
+    currentAudioUrlRef.current = audioUrl
+    
     // Keep track of component mounted state
     let isMounted = true;
 
@@ -64,7 +73,6 @@ export function useAudioPlayer({ audioUrl, onTimeUpdate, onEnded }: UseAudioPlay
       clearTimeout(timeoutId);
       setDuration(audio.duration);
       setIsReady(true);
-      console.log(`Audio loaded: ${normalizedUrl} (duration: ${audio.duration}s)`);
     };
 
     audio.oncanplaythrough = () => {
@@ -183,34 +191,24 @@ export function useAudioPlayer({ audioUrl, onTimeUpdate, onEnded }: UseAudioPlay
     }
 
     try {
-      // If this is the first play attempt, check autoplay support
-      if (!autoplayAttemptedRef.current) {
-        autoplayAttemptedRef.current = true;
-        const canAutoplay = await checkAutoplaySupport();
-        
-        if (!canAutoplay) {
-          setAutoplayBlocked(true);
-          // We don't set an error here, just inform the user
-          // The audio will still try to play below
-          console.warn("Autoplay blocked by browser. User interaction required.");
-        }
-      }
+      // Mark that play has been attempted
+      autoplayAttemptedRef.current = true;
 
       if (startTime !== undefined) {
         audioRef.current.currentTime = startTime
       }
 
       try {
-      await audioRef.current.play()
-      setIsPlaying(true)
-      startProgressInterval()
+        await audioRef.current.play()
+        setIsPlaying(true)
+        startProgressInterval()
         
         // If play succeeded, reset any autoplay blocked state
         if (autoplayBlocked) {
           setAutoplayBlocked(false)
         }
         
-      setError(null)
+        setError(null)
       } catch (playError) {
         // Handle play errors without accessing error properties directly
         console.error("Play error:", playError instanceof Error ? playError.message : "Unknown play error");
@@ -262,6 +260,32 @@ export function useAudioPlayer({ audioUrl, onTimeUpdate, onEnded }: UseAudioPlay
     }
   }
 
+  // Skip forward by specified seconds
+  const skipForward = (seconds: number = 10) => {
+    if (!audioRef.current || !isReady) return
+    
+    const newTime = Math.min(audioRef.current.currentTime + seconds, duration)
+    audioRef.current.currentTime = newTime
+    
+    // If playing, continue playing from new position
+    if (isPlaying) {
+      play(newTime)
+    }
+  }
+
+  // Skip backward by specified seconds
+  const skipBackward = (seconds: number = 10) => {
+    if (!audioRef.current || !isReady) return
+    
+    const newTime = Math.max(audioRef.current.currentTime - seconds, 0)
+    audioRef.current.currentTime = newTime
+    
+    // If playing, continue playing from new position
+    if (isPlaying) {
+      play(newTime)
+    }
+  }
+
   // Set voice info for display
   const setVoiceInfo = (name: string | null, locale: string | null = null) => {
     setSelectedVoice({ name, locale })
@@ -279,6 +303,8 @@ export function useAudioPlayer({ audioUrl, onTimeUpdate, onEnded }: UseAudioPlay
     pause,
     toggle,
     seek,
+    skipForward,
+    skipBackward,
     setVoiceInfo
   }
 }

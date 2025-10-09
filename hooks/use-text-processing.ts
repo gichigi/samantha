@@ -11,7 +11,7 @@ interface UseTextProcessingProps {
 }
 
 export function useTextProcessing({ onProgressUpdate, onAudioReady, onError }: UseTextProcessingProps = {}) {
-  const { setProcessedText, setAudioUrl } = useReader()
+  const { setProcessedText } = useReader()
   const [isLoading, setIsLoading] = useState(false)
   const [wordCount, setWordCount] = useState(0)
 
@@ -54,7 +54,8 @@ export function useTextProcessing({ onProgressUpdate, onAudioReady, onError }: U
     const sanitizedText = sanitizeText(text)
 
     // Update word count based on sanitized text
-    setWordCount(sanitizedText.split(/\s+/).filter((word) => word.length > 0).length)
+    const words = sanitizedText.split(/\s+/).filter((word) => word.length > 0).length
+    setWordCount(words)
 
     const ttsService = initTTSService()
     if (!ttsService) {
@@ -63,23 +64,27 @@ export function useTextProcessing({ onProgressUpdate, onAudioReady, onError }: U
     }
 
     try {
-      console.log("Processing text for TTS, length:", sanitizedText.length)
-
       // Prepare the TTS with the sanitized text
       const processed = await ttsService.prepare(sanitizedText)
 
       // Store the processed text
       setProcessedText(processed)
-      console.log("Text processed successfully, processed length:", processed.length)
 
       // Get the audio URL
       const audioUrl = ttsService.getAudioUrl()
-      if (audioUrl) {
-        setAudioUrl(audioUrl)
-        console.log("Audio URL generated:", audioUrl)
-        if (onAudioReady) {
-          onAudioReady(audioUrl)
-        }
+      
+      if (!audioUrl) {
+        console.error("No audio URL returned from TTS service")
+        setIsLoading(false)
+        return null
+      }
+
+      // Call the callback if provided (LoadingView will use this to set audioUrl)
+      console.log(`Calling onAudioReady callback: ${!!onAudioReady}, audioUrl: ${audioUrl}`)
+      if (onAudioReady) {
+        onAudioReady(audioUrl)
+      } else {
+        console.warn("No onAudioReady callback provided!")
       }
 
       setIsLoading(false)

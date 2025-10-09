@@ -3,28 +3,18 @@
 import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { History, ChevronLeft, User, LogOut } from "lucide-react"
-import { useAuth } from "@/contexts/auth-context"
-import { Button } from "@/components/ui/button"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+import { History, ChevronLeft } from "lucide-react"
+import { LocalUsageService } from "@/services/local-usage-service"
 
 export default function Navbar() {
-  const { user, signOut, isLoading } = useAuth()
   const pathname = usePathname()
   const router = useRouter()
   const isHomePage = pathname === "/"
   const [isMounted, setIsMounted] = useState(false)
   const [backHandler, setBackHandler] = useState<(() => void) | null>(null)
-  const [usageInfo, setUsageInfo] = useState<any>(null)
+  const [usage, setUsage] = useState({ remaining: 3, limit: 3 })
   
-  // Only show back button when not on home page
+  // Show back button when not on home page
   const showBackButton = !isHomePage
   
   // Default back handler uses router
@@ -60,26 +50,21 @@ export default function Navbar() {
     }
   }, [])
   
-  // Fetch usage info when user is authenticated
+  // Fetch usage from localStorage
   useEffect(() => {
-    const fetchUsage = async () => {
-      if (user) {
-        try {
-          const response = await fetch('/api/usage-status')
-          if (response.ok) {
-            const usage = await response.json()
-            setUsageInfo(usage)
-          }
-        } catch (error) {
-          console.error('Error fetching usage:', error)
-        }
-      } else {
-        setUsageInfo(null)
+    if (typeof window !== 'undefined') {
+      const updateUsage = () => {
+        const usageStatus = LocalUsageService.getUsage()
+        setUsage({ remaining: usageStatus.remaining, limit: usageStatus.limit })
       }
+      
+      updateUsage()
+      
+      // Listen for usage updates
+      window.addEventListener('usage-updated', updateUsage)
+      return () => window.removeEventListener('usage-updated', updateUsage)
     }
-    
-    fetchUsage()
-  }, [user])
+  }, [])
 
   // Handle client-side rendering to avoid hydration mismatch
   useEffect(() => {
@@ -98,7 +83,8 @@ export default function Navbar() {
             <button
               onClick={handleBackClick}
               className="rounded-full bg-white/10 p-2 hover:bg-white/20 transition-colors"
-              aria-label="Go back"
+              aria-label="Go back to home"
+              title="Go back"
             >
               <ChevronLeft size={24} className="text-white" />
             </button>
@@ -106,58 +92,25 @@ export default function Navbar() {
         </div>
         
         <div className="flex items-center space-x-4">
-          {user ? (
-            <>
-              <Link 
-                href="/history" 
-                className="flex items-center px-4 py-2 rounded-md bg-white/10 hover:bg-white/20 transition-colors text-white/90 text-sm font-medium"
-              >
-                <History size={16} className="mr-1.5" />
-                <span>History</span>
-              </Link>
-              
-              {usageInfo && (
-                <div className="text-white/80 text-sm">
-                  {usageInfo.remaining}/{usageInfo.limit} articles left
-                </div>
-              )}
-              
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="text-white hover:bg-white/10">
-                    <User size={16} className="mr-2" />
-                    {user.email?.split('@')[0] || 'Account'}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-40 bg-white border border-gray-200 shadow-lg rounded-md p-1">
-                  <DropdownMenuItem 
-                    onClick={() => signOut()} 
-                    className="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 rounded-sm cursor-pointer transition-colors"
-                  >
-                    <LogOut size={16} className="mr-2 text-gray-500" />
-                    Sign out
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </>
-          ) : (
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="text-white hover:bg-white/10"
-              onClick={() => {
-                router.push('/')
-                // Trigger auth prompt
-                setTimeout(() => {
-                  window.dispatchEvent(new CustomEvent('trigger-auth-prompt'))
-                }, 100)
-              }}
-            >
-              Sign in
-            </Button>
-          )}
+          <Link 
+            href="/history" 
+            className="flex items-center px-3 py-2 rounded-md bg-white/10 hover:bg-white/20 transition-colors"
+            aria-label="View reading history"
+            title="History"
+          >
+            <History size={20} className="text-white" />
+          </Link>
+          
+          {/* Article count display - numbers only */}
+          <div 
+            className="text-white/90 text-sm font-medium px-3 py-2 bg-white/10 rounded-md"
+            aria-label={`${usage.remaining} of ${usage.limit} articles remaining today`}
+            title={`${usage.remaining}/${usage.limit} articles left`}
+          >
+            {usage.remaining}/{usage.limit}
+          </div>
         </div>
       </div>
     </nav>
   )
-} 
+}
