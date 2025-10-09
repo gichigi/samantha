@@ -1,8 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { useTextProcessing } from "@/hooks/use-text-processing"
-import { useReader } from "@/contexts/reader-context"
 
 interface ExtractedContent {
   title: string
@@ -29,14 +27,6 @@ export function useUrlExtraction() {
   const [isLoading, setIsLoading] = useState(false)
   const [extractionError, setExtractionError] = useState<ExtractionError | null>(null)
   const [extractedContent, setExtractedContent] = useState<ExtractedContent | null>(null)
-  const { setCurrentText } = useReader()
-
-  const { processText } = useTextProcessing({
-    onError: (err) => setExtractionError({
-      code: "PROCESSING_ERROR",
-      message: err
-    }),
-  })
 
   const extractUrl = async (url: string) => {
     setIsLoading(true)
@@ -80,7 +70,10 @@ export function useUrlExtraction() {
           suggestion: "Please check the URL and try again"
         }
         
-        throw errorData
+        // Set error and return null instead of throwing
+        setExtractionError(errorData)
+        setIsLoading(false)
+        return null
       }
 
       console.log("Extracted content:", {
@@ -112,20 +105,9 @@ export function useUrlExtraction() {
 
       setExtractedContent(extractedData)
 
-      // Process the text for TTS
-      try {
-      await processText(formattedContent)
-      } catch (processError) {
-        console.warn("Text processing warning:", processError)
-        // Continue even if processing had issues - we'll use the raw content
-      }
-
-      // Ensure the current text is updated
-      setCurrentText(formattedContent)
-
       setIsLoading(false)
       return extractedData
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error extracting URL content:", error)
       
       // Format the error consistently

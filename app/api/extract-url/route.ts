@@ -49,8 +49,8 @@ export async function POST(request: Request) {
       // Extract content using our improved service
       const extractionResult = await extractionService.extractContent(url)
 
-      // Check word count limit (10,000 words max)
-      const MAX_WORDS = 10000
+      // Check word count limit (800 words max)
+      const MAX_WORDS = 800
       if (extractionResult.wordCount && extractionResult.wordCount > MAX_WORDS) {
         return NextResponse.json({ 
           error: {

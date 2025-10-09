@@ -7,6 +7,7 @@ interface ReaderContextProps {
   // Content state
   currentTextIndex: number
   currentTitle: string
+  currentByline: string | undefined
   currentUrl: string
   audioUrl: string | null
   currentText: string
@@ -20,6 +21,7 @@ interface ReaderContextProps {
   // Actions
   setCurrentTextIndex: (index: number) => void
   setCurrentTitle: (title: string) => void
+  setCurrentByline: (byline: string | undefined) => void
   setCurrentUrl: (url: string) => void
   setAudioUrl: (url: string | null) => void
   setActiveWordIndex: (index: number) => void
@@ -37,6 +39,7 @@ export function ReaderProvider({ children }: { children: ReactNode }) {
   // Content state
   const [currentTextIndex, setCurrentTextIndex] = useState(0)
   const [currentTitle, setCurrentTitle] = useState("")
+  const [currentByline, setCurrentByline] = useState<string | undefined>(undefined)
   const [currentUrl, setCurrentUrl] = useState("")
   const [audioUrl, setAudioUrl] = useState<string | null>(null)
   const [currentText, setCurrentText] = useState("")
@@ -70,6 +73,7 @@ export function ReaderProvider({ children }: { children: ReactNode }) {
   const value = {
     currentTextIndex,
     currentTitle,
+    currentByline,
     currentUrl,
     audioUrl,
     currentText,
@@ -79,6 +83,7 @@ export function ReaderProvider({ children }: { children: ReactNode }) {
     useTimestampHighlighting,
     setCurrentTextIndex,
     setCurrentTitle,
+    setCurrentByline,
     setCurrentUrl,
     setAudioUrl,
     setActiveWordIndex,

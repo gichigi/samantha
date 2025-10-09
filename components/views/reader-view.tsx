@@ -10,6 +10,7 @@ import { getOpenAITTSService } from "@/services/openai-tts-service"
 export default function ReaderView() {
   const {
     currentTitle,
+    currentByline,
     currentUrl,
     audioUrl,
     trackReading,
@@ -256,10 +257,17 @@ export default function ReaderView() {
       
       {/* Main content - audio-first design */}
       <div className="flex-1 flex flex-col items-center justify-center pt-16 pb-32">
-        {/* Article title */}
-        <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-12 text-center px-6 max-w-4xl tracking-wide">
-          {currentTitle}
-        </h1>
+        {/* Article title and byline */}
+        <div className="text-center px-6 max-w-4xl mb-12">
+          <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white tracking-wide">
+            {currentTitle}
+          </h1>
+          {currentByline && (
+            <p className="text-white/70 text-sm md:text-base mt-2 font-light">
+              {currentByline}
+            </p>
+          )}
+        </div>
         
         {/* Audio visualizer */}
         <AudioVisualizer

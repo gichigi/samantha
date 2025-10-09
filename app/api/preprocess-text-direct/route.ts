@@ -80,25 +80,37 @@ export async function POST(request: Request) {
 
       const fullResponse = responseData.choices[0].message.content || text
       
-      // Extract normalized title if present
+      // Extract normalized title and byline if present
       let preprocessedText = fullResponse
       let normalizedTitle = title // Default to original title
+      let byline = undefined // Default to no byline
       
       if (title && fullResponse.includes("NORMALIZED_TITLE:")) {
         const lines = fullResponse.split('\n')
         const titleLine = lines.find(line => line.trim().startsWith("NORMALIZED_TITLE:"))
+        const bylineLine = lines.find(line => line.trim().startsWith("BYLINE:"))
+        
         if (titleLine) {
           normalizedTitle = titleLine.replace("NORMALIZED_TITLE:", "").trim()
-          // Remove the title line from the main text
-          preprocessedText = lines.filter(line => !line.trim().startsWith("NORMALIZED_TITLE:")).join('\n').trim()
         }
+        
+        if (bylineLine) {
+          byline = bylineLine.replace("BYLINE:", "").trim()
+        }
+        
+        // Remove the title and byline lines from the main text
+        preprocessedText = lines.filter(line => 
+          !line.trim().startsWith("NORMALIZED_TITLE:") && 
+          !line.trim().startsWith("BYLINE:")
+        ).join('\n').trim()
       }
 
-      console.log(`Text preprocessed successfully with ${model}, new length: ${preprocessedText.length}${normalizedTitle !== title ? `, normalized title: "${normalizedTitle}"` : ""}`)
+      console.log(`Text preprocessed successfully with ${model}, new length: ${preprocessedText.length}${normalizedTitle !== title ? `, normalized title: "${normalizedTitle}"` : ""}${byline ? `, byline: "${byline}"` : ""}`)
 
       return NextResponse.json({
         text: preprocessedText,
         normalizedTitle: normalizedTitle,
+        byline: byline,
         model: model,
       })
     } catch (error: any) {

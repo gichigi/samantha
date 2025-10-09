@@ -11,7 +11,7 @@ interface UseTextProcessingProps {
 }
 
 export function useTextProcessing({ onProgressUpdate, onAudioReady, onError }: UseTextProcessingProps = {}) {
-  const { setProcessedText, setCurrentTitle } = useReader()
+  const { setProcessedText, setCurrentTitle, setCurrentByline } = useReader()
   const [isLoading, setIsLoading] = useState(false)
 
   // Process text and prepare audio
@@ -45,6 +45,11 @@ export function useTextProcessing({ onProgressUpdate, onAudioReady, onError }: U
       // Update the title if normalized
       if (result.normalizedTitle) {
         setCurrentTitle(result.normalizedTitle)
+      }
+
+      // Update the byline if extracted
+      if (result.byline) {
+        setCurrentByline(result.byline)
       }
 
       // Get the audio URL

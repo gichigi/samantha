@@ -10,7 +10,7 @@ export interface UsageStatus {
 }
 
 export class LocalUsageService {
-  private static readonly DAILY_LIMIT = 3
+  private static readonly DAILY_LIMIT = 999
   private static readonly STORAGE_KEY = 'samantha_usage'
 
   // Get current usage status

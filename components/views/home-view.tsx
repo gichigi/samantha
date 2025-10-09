@@ -97,7 +97,6 @@ export default function HomeView() {
 
     setValidationError(null)
     setError(null)
-    transitionTo("loading")
 
     const extractedData = await extractUrl(url.trim())
 
@@ -112,9 +111,10 @@ export default function HomeView() {
       setCurrentUrl(url.trim())
       setCurrentText(extractedData.content)
       setUseTimestampHighlighting(false)
-      setAudioUrl(null) // Use TTS generation
+      setAudioUrl(null) // Clear audio to trigger TTS generation
 
-      transitionTo("reading")
+      // NOW transition to loading for TTS generation
+      transitionTo("loading")
     } else {
       // Handle extraction errors
       if (extractionError) {
@@ -123,15 +123,13 @@ export default function HomeView() {
         } else if (extractionError.code === "UNSUPPORTED_FILE_TYPE") {
           setError("Can't read this file type. Try a web article URL instead.")
         } else if (extractionError.code === "CONTENT_TOO_LONG") {
-          setError("This article is too long. Try a shorter article (under 10,000 words).")
+          setError("This article is too long. Try a shorter article (under 800 words).")
         } else if (extractionError.code === "INVALID_URL") {
           setError("Invalid URL. Please paste a complete web address.")
         } else {
           setError("Couldn't extract this content. Please try a different article URL.")
         }
       }
-      
-      transitionTo("home")
     }
   }
 
@@ -168,16 +166,6 @@ export default function HomeView() {
         </div>
         
       </div>
-
-      {/* Error message display */}
-      {(error || validationError) && (
-        <div 
-          className="bg-red-500/20 p-4 rounded-lg max-w-md text-center mb-8"
-          role="alert"
-        >
-          <p className="text-white text-sm">{error || validationError}</p>
-        </div>
-      )}
 
       {/* Sample article cards - icon + reading time only */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full max-w-2xl mb-10">
@@ -261,6 +249,16 @@ export default function HomeView() {
             </button>
           </div>
         </form>
+        
+        {/* Error message display - right under URL input */}
+        {(error || validationError) && (
+          <div 
+            className="bg-red-500/20 p-4 rounded-lg max-w-xl text-center mt-4"
+            role="alert"
+          >
+            <p className="text-white text-sm">{error || validationError}</p>
+          </div>
+        )}
       </div>
     </main>
   )

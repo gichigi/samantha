@@ -28,9 +28,16 @@ export default function LoadingView({ progress, message }: LoadingViewProps) {
     }, 500)
   }, [setAudioUrl, transitionTo])
   
-  // Initialize text processing hook with stable callback
+  // Handle real progress updates from TTS service
+  const handleProgressUpdate = useCallback((progress: number) => {
+    console.log(`Processing progress: ${progress}%`)
+    setDisplayProgress(progress)
+  }, [])
+  
+  // Initialize text processing hook with stable callbacks INCLUDING progress
   const { processText } = useTextProcessing({
     onAudioReady: handleAudioReady,
+    onProgressUpdate: handleProgressUpdate,
     onError: (errorMsg: string) => {
       console.error("Audio generation error:", errorMsg)
       setError(errorMsg.includes("server error") 
@@ -50,31 +57,21 @@ export default function LoadingView({ progress, message }: LoadingViewProps) {
     if (currentText && !audioUrl && !processingStartedRef.current) {
       processingStartedRef.current = true
       
+      // Show initial progress immediately
+      setDisplayProgress(10)
+      
       processText(currentText, currentTitle).catch((error) => {
         console.error("Audio generation failed:", error)
         processingStartedRef.current = false
       })
     }
-  }, [currentText, currentTitle, audioUrl]) // Only depend on currentText, currentTitle and audioUrl
+  }, [currentText, audioUrl]) // Don't include processText to avoid re-renders
 
-  // Simulate progress if none is provided
+  // Use provided progress prop if available (for external control)
   useEffect(() => {
     if (progress !== undefined) {
       setDisplayProgress(progress)
-      return
     }
-
-    // Simulate progress
-    const interval = setInterval(() => {
-      setDisplayProgress((prev) => {
-        // Slow down as we approach 100%
-        const increment = prev < 50 ? 5 : prev < 80 ? 3 : 1
-        const newProgress = Math.min(prev + increment, 95)
-        return newProgress
-      })
-    }, 300)
-
-    return () => clearInterval(interval)
   }, [progress])
 
   // Determine current stage based on progress
@@ -172,11 +169,14 @@ export default function LoadingView({ progress, message }: LoadingViewProps) {
             strokeLinecap="round"
             strokeLinejoin="round"
           >
+            {/* Document */}
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
             <polyline points="14 2 14 8 20 8"/>
             <line x1="16" y1="13" x2="8" y2="13"/>
             <line x1="16" y1="17" x2="8" y2="17"/>
-            <polyline points="10 9 9 9 8 9"/>
+            {/* Magnifying glass overlay */}
+            <circle cx="18" cy="6" r="3"/>
+            <path d="m20.5 8.5-1.5 1.5"/>
           </svg>
         </div>
 

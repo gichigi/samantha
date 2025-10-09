@@ -33,11 +33,18 @@ If a title is provided, normalize it to be concise and readable:
 - Maintain the core meaning
 - Return the normalized title on a separate line with "NORMALIZED_TITLE: " prefix
 
+If an author is mentioned in the title, extract it as a byline:
+- Look for patterns: "by [Author]", "- [Author]", "| [Author]"
+- Return on separate line with "BYLINE: " prefix
+- Remove author from normalized title
+- Keep byline concise (under 30 characters)
+- Format as "by [Author Name]"
+
 Examples:
-- "Make Something Heavy - by Anu - Working Theorys" → "Make Something Heavy"
-- "The Future of AI | TechCrunch - Latest News 2024" → "The Future of AI"
-- "How to Code Better: A Complete Guide - Blog Name" → "How to Code Better"
-- "10 Tips for Success in 2024 | Best Practices Guide" → "10 Tips for Success"
+- "Make Something Heavy - by Anu - Working Theorys" → Title: "Make Something Heavy", Byline: "by Anu"
+- "The Future of AI | Sarah Johnson - TechCrunch" → Title: "The Future of AI", Byline: "by Sarah Johnson"
+- "How to Code Better: A Complete Guide - by John Smith" → Title: "How to Code Better", Byline: "by John Smith"
+- "10 Tips for Success in 2024 | Best Practices Guide" → Title: "10 Tips for Success" (no byline)
 
 ⸻
 
@@ -89,7 +96,7 @@ Ensure you preserve paragraph structure with proper line breaks.
   // Cache for previously generated audio (improved caching)
   // Cache key format: text-model-voice-speed
   private static audioCache: Map<string, Blob> = new Map()
-  private static preprocessCache: Map<string, Map<string, { text: string; normalizedTitle?: string }>> = new Map() // model -> [text -> preprocessed]
+  private static preprocessCache: Map<string, Map<string, { text: string; normalizedTitle?: string; byline?: string }>> = new Map() // model -> [text -> preprocessed]
 
   constructor() {
     if (typeof window !== "undefined") {
@@ -199,10 +206,10 @@ Ensure you preserve paragraph structure with proper line breaks.
   }
 
   // Preprocess text using selected GPT model
-  public async preprocessText(text: string, model = "gpt-4o-mini", title?: string): Promise<{ text: string; normalizedTitle?: string }> {
+  public async preprocessText(text: string, model = "gpt-4o-mini", title?: string): Promise<{ text: string; normalizedTitle?: string; byline?: string }> {
     // Initialize model cache if it doesn't exist
     if (!OpenAITTSService.preprocessCache.has(model)) {
-      OpenAITTSService.preprocessCache.set(model, new Map<string, { text: string; normalizedTitle?: string }>())
+      OpenAITTSService.preprocessCache.set(model, new Map<string, { text: string; normalizedTitle?: string; byline?: string }>())
     }
 
     const modelCache = OpenAITTSService.preprocessCache.get(model)!
@@ -247,10 +254,11 @@ Ensure you preserve paragraph structure with proper line breaks.
 
       const preprocessedText = data.text
       const normalizedTitle = data.normalizedTitle
+      const byline = data.byline
 
-      console.log(`Text preprocessed successfully using ${model}${normalizedTitle ? `, normalized title: "${normalizedTitle}"` : ""}`)
+      console.log(`Text preprocessed successfully using ${model}${normalizedTitle ? `, normalized title: "${normalizedTitle}"` : ""}${byline ? `, byline: "${byline}"` : ""}`)
 
-      const result = { text: preprocessedText, normalizedTitle }
+      const result = { text: preprocessedText, normalizedTitle, byline }
 
       // Cache the result
       modelCache.set(cacheKey, result)
@@ -259,7 +267,7 @@ Ensure you preserve paragraph structure with proper line breaks.
     } catch (error) {
       console.error(`Error preprocessing text with ${model}:`, error)
       // Fall back to original text if preprocessing fails
-      return { text: text, normalizedTitle: title }
+      return { text: text, normalizedTitle: title, byline: undefined }
     }
   }
 
@@ -271,7 +279,7 @@ Ensure you preserve paragraph structure with proper line breaks.
       preprocessModel?: string
       title?: string
     } = {},
-  ): Promise<{ text: string; normalizedTitle?: string }> {
+  ): Promise<{ text: string; normalizedTitle?: string; byline?: string }> {
     const skipPreprocessing = options.skipPreprocessing || false
     const preprocessModel = options.preprocessModel || "gpt-4o-mini"
     const title = options.title
@@ -288,6 +296,7 @@ Ensure you preserve paragraph structure with proper line breaks.
 
     let processedText = text
     let normalizedTitle = title
+    let byline = undefined
 
     try {
       console.log("Preparing text, length:", text.length)
@@ -301,6 +310,7 @@ Ensure you preserve paragraph structure with proper line breaks.
         const preprocessResult = await this.preprocessText(text, preprocessModel, title)
         processedText = preprocessResult.text
         normalizedTitle = preprocessResult.normalizedTitle
+        byline = preprocessResult.byline
         // Report 60% progress (preprocessing done)
         if (this.onProgressUpdate) {
           this.onProgressUpdate(60)
@@ -381,7 +391,7 @@ Ensure you preserve paragraph structure with proper line breaks.
       }
 
       console.log("Audio prepared successfully")
-      return { text: processedText, normalizedTitle } // Return the processed text and normalized title
+      return { text: processedText, normalizedTitle, byline } // Return the processed text, normalized title, and byline
     } catch (error) {
       console.error("Error preparing audio:", error)
       throw error
