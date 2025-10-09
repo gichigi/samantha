@@ -36,8 +36,8 @@ export default function HomeView() {
     // Clear any previous audio URL to force TTS generation
     setAudioUrl(null)
 
-    // Show loading screen - it will automatically transition when audio is ready
-    transitionTo("loading")
+    // Show loading screen with smooth fade transition
+    transitionTo("loading", true)
   }
 
   const validateUrl = (url: string): { isValid: boolean; error?: string } => {
@@ -161,35 +161,48 @@ export default function HomeView() {
         <h1 className="text-5xl md:text-6xl lg:text-7xl font-serif font-light text-white mb-8 tracking-wide">
           Samantha
         </h1>
-        <div className="w-24 h-24 md:w-28 md:h-28 flex items-center justify-center">
-          {/* Audio wave icon representing Samantha */}
-          <svg 
-            viewBox="0 0 24 24" 
-            fill="none" 
-            className="w-full h-full text-white"
+        <div className="flex items-center justify-center h-32 md:h-36 mb-8">
+          <style jsx>{`
+            @keyframes breathe {
+              0%, 100% {
+                transform: scale(1);
+                opacity: 0.8;
+              }
+              50% {
+                transform: scale(1.2);
+                opacity: 1;
+              }
+            }
+            
+            @keyframes glow {
+              0%, 100% {
+                filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.3));
+              }
+              50% {
+                filter: drop-shadow(0 0 40px rgba(255, 255, 255, 0.6));
+              }
+            }
+          `}</style>
+          <div 
+            className="relative"
+            style={{
+              animation: 'breathe 4s ease-in-out infinite',
+            }}
             aria-label="She reads the internet, out loud, just for you"
           >
-            <rect x="3" y="10" width="2" height="4" fill="currentColor" rx="1">
-              <animate attributeName="height" values="4;12;4" dur="1s" repeatCount="indefinite" />
-              <animate attributeName="y" values="10;6;10" dur="1s" repeatCount="indefinite" />
-            </rect>
-            <rect x="7" y="8" width="2" height="8" fill="currentColor" rx="1">
-              <animate attributeName="height" values="8;16;8" dur="1.2s" repeatCount="indefinite" />
-              <animate attributeName="y" values="8;4;8" dur="1.2s" repeatCount="indefinite" />
-            </rect>
-            <rect x="11" y="6" width="2" height="12" fill="currentColor" rx="1">
-              <animate attributeName="height" values="12;18;12" dur="0.9s" repeatCount="indefinite" />
-              <animate attributeName="y" values="6;3;6" dur="0.9s" repeatCount="indefinite" />
-            </rect>
-            <rect x="15" y="8" width="2" height="8" fill="currentColor" rx="1">
-              <animate attributeName="height" values="8;14;8" dur="1.1s" repeatCount="indefinite" />
-              <animate attributeName="y" values="8;5;8" dur="1.1s" repeatCount="indefinite" />
-            </rect>
-            <rect x="19" y="10" width="2" height="4" fill="currentColor" rx="1">
-              <animate attributeName="height" values="4;10;4" dur="1.3s" repeatCount="indefinite" />
-              <animate attributeName="y" values="10;7;10" dur="1.3s" repeatCount="indefinite" />
-            </rect>
-          </svg>
+            {/* Main circle */}
+            <div 
+              className="w-32 h-32 rounded-full bg-white/20 backdrop-blur-sm border-2 border-white/40"
+              style={{
+                animation: 'glow 2s ease-in-out infinite',
+              }}
+            />
+            
+            {/* Inner circle */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-20 h-20 rounded-full bg-white/30 backdrop-blur-sm" />
+            </div>
+          </div>
         </div>
       </div>
 
