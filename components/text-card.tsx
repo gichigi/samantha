@@ -14,11 +14,17 @@ export default function TextCard({ title, icon, wordCount, readingTime, onClick 
   return (
     <button
       onClick={onClick}
-      className="group flex items-center justify-center bg-white/10 backdrop-blur-sm rounded-2xl p-8 md:p-10 transition-all hover:bg-white/20 hover:scale-110 active:scale-95 w-[200px] h-[200px] md:w-[240px] md:h-[240px]"
+      className="group relative flex items-center justify-center bg-white/10 backdrop-blur-sm rounded-2xl p-8 transition-all hover:bg-white/20 hover:scale-105 active:scale-95 aspect-square w-full"
       aria-label={`${title}: ${readingTime} minute read`}
       title={`${title}`}
     >
-      <div className="text-white transition-transform group-hover:scale-110" style={{fontSize: '160px'}}>{icon}</div>
+      {/* Time badge in top right */}
+      <div className="absolute top-3 right-3 px-2 py-1 rounded-full bg-white/20 text-white text-xs font-medium">
+        {readingTime}m
+      </div>
+      
+      {/* Center icon */}
+      <div className="text-white transition-transform group-hover:scale-110" style={{fontSize: '80px'}}>{icon}</div>
     </button>
   )
 }

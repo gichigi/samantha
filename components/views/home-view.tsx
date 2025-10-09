@@ -157,10 +157,18 @@ export default function HomeView() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-[#3b82f6] p-6">
       {/* Balanced Title with Samantha */}
-      <div className="flex flex-col items-center mb-12">
-        <h1 className="text-5xl md:text-6xl lg:text-7xl font-serif font-light text-white mb-8 tracking-wide">
-          Samantha
-        </h1>
+      <div className="flex flex-col items-center mb-16">
+        {/* Title with subtle background */}
+        <div className="relative mb-12">
+          {/* Subtle background shape */}
+          <div className="absolute inset-0 -m-8 bg-white/5 rounded-3xl blur-xl"></div>
+          <div className="absolute inset-0 -m-4 bg-white/3 rounded-2xl"></div>
+          
+          <h1 className="relative text-5xl md:text-6xl lg:text-7xl font-bold text-white tracking-wide px-8 py-4">
+            Samantha
+          </h1>
+        </div>
+        
         <div className="flex items-center justify-center h-32 md:h-36 mb-8">
           <style jsx>{`
             @keyframes breathe {
@@ -220,28 +228,28 @@ export default function HomeView() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full max-w-2xl mb-10">
         <TextCard
           title="Introduction"
-          icon={<BookOpen />}
+          icon={<BookOpen size={40} />}
           wordCount={sampleTexts[0].wordCount}
           readingTime={sampleTexts[0].readingTime}
           onClick={() => handleSelectSampleText(0)}
         />
         <TextCard
           title="AI Future"
-          icon={<Brain />}
+          icon={<Brain size={40} />}
           wordCount={sampleTexts[1].wordCount}
           readingTime={sampleTexts[1].readingTime}
           onClick={() => handleSelectSampleText(1)}
         />
         <TextCard
           title="Mindfulness"
-          icon={<Sparkles />}
+          icon={<Sparkles size={40} />}
           wordCount={sampleTexts[2].wordCount}
           readingTime={sampleTexts[2].readingTime}
           onClick={() => handleSelectSampleText(2)}
         />
         <TextCard
           title="Internet History"
-          icon={<History />}
+          icon={<History size={40} />}
           wordCount={sampleTexts[3].wordCount}
           readingTime={sampleTexts[3].readingTime}
           onClick={() => handleSelectSampleText(3)}
