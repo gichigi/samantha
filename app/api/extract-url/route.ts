@@ -70,11 +70,7 @@ export async function POST(request: Request) {
     }
 
     // Get the content extraction service
-    const extractionService = getContentExtractionService({
-      // Configure service options
-      timeout: 15000, // 15 seconds
-      includeImages: false
-    })
+    const extractionService = getContentExtractionService()
     
     try {
       // Extract content using our improved service

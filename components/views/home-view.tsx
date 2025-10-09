@@ -19,11 +19,41 @@ export default function HomeView() {
     setCurrentText,
   } = useReader()
 
+  // Animation state
+  const [showDivider, setShowDivider] = useState(false)
+  const [showTitle, setShowTitle] = useState(false)
+  const [showCard1, setShowCard1] = useState(false)
+  const [showCard2, setShowCard2] = useState(false)
+  const [showCard3, setShowCard3] = useState(false)
+  const [showCard4, setShowCard4] = useState(false)
+  const [showUrlInput, setShowUrlInput] = useState(false)
+
   const { transitionTo } = useViewState()
   const { isLoading, extractUrl, error: extractionError } = useUrlExtraction()
   const [error, setError] = useState<string | null>(null)
   const [url, setUrl] = useState("")
   const [validationError, setValidationError] = useState<string | null>(null)
+
+  // Staggered animation sequence
+  useEffect(() => {
+    const timer1 = setTimeout(() => setShowDivider(true), 100)
+    const timer2 = setTimeout(() => setShowTitle(true), 400)
+    const timer3 = setTimeout(() => setShowCard1(true), 800)
+    const timer4 = setTimeout(() => setShowCard2(true), 1000)
+    const timer5 = setTimeout(() => setShowCard3(true), 1200)
+    const timer6 = setTimeout(() => setShowCard4(true), 1400)
+    const timer7 = setTimeout(() => setShowUrlInput(true), 1800)
+
+    return () => {
+      clearTimeout(timer1)
+      clearTimeout(timer2)
+      clearTimeout(timer3)
+      clearTimeout(timer4)
+      clearTimeout(timer5)
+      clearTimeout(timer6)
+      clearTimeout(timer7)
+    }
+  }, [])
 
   // Handle sample article selection with on-demand TTS generation
   const handleSelectSampleText = async (index: number) => {
@@ -155,7 +185,7 @@ export default function HomeView() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-[#3b82f6] p-6">
+    <main className="min-h-screen bg-[#3b82f6] p-6 flex flex-col items-center justify-center" style={{paddingTop: '64px'}}>
       {/* Balanced Title with Samantha */}
       <div className="flex flex-col items-center mb-16">
         {/* Title with subtle background */}
@@ -164,54 +194,20 @@ export default function HomeView() {
           <div className="absolute inset-0 -m-8 bg-white/5 rounded-3xl blur-xl"></div>
           <div className="absolute inset-0 -m-4 bg-white/3 rounded-2xl"></div>
           
-          <h1 className="relative text-5xl md:text-6xl lg:text-7xl font-bold text-white tracking-wide px-8 py-4">
-            Samantha
-          </h1>
+          <div className={`relative transition-all duration-700 ease-out ${
+            showTitle ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+          }`}>
+            <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white tracking-wide px-8 py-4">
+              Samantha
+            </h1>
+          </div>
+          
+          {/* More visible divider - separate animation */}
+          <div className={`w-32 h-px bg-white/40 mt-4 mx-auto transition-all duration-500 ease-out ${
+            showDivider ? 'opacity-100 scale-x-100' : 'opacity-0 scale-x-0'
+          }`}></div>
         </div>
         
-        <div className="flex items-center justify-center h-32 md:h-36 mb-8">
-          <style jsx>{`
-            @keyframes breathe {
-              0%, 100% {
-                transform: scale(1);
-                opacity: 0.8;
-              }
-              50% {
-                transform: scale(1.2);
-                opacity: 1;
-              }
-            }
-            
-            @keyframes glow {
-              0%, 100% {
-                filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.3));
-              }
-              50% {
-                filter: drop-shadow(0 0 40px rgba(255, 255, 255, 0.6));
-              }
-            }
-          `}</style>
-          <div 
-            className="relative"
-            style={{
-              animation: 'breathe 4s ease-in-out infinite',
-            }}
-            aria-label="She reads the internet, out loud, just for you"
-          >
-            {/* Main circle */}
-            <div 
-              className="w-32 h-32 rounded-full bg-white/20 backdrop-blur-sm border-2 border-white/40"
-              style={{
-                animation: 'glow 2s ease-in-out infinite',
-              }}
-            />
-            
-            {/* Inner circle */}
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-20 h-20 rounded-full bg-white/30 backdrop-blur-sm" />
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* Error message display */}
@@ -226,38 +222,56 @@ export default function HomeView() {
 
       {/* Sample article cards - icon + reading time only */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full max-w-2xl mb-10">
-        <TextCard
-          title="Introduction"
-          icon={<BookOpen size={40} />}
-          wordCount={sampleTexts[0].wordCount}
-          readingTime={sampleTexts[0].readingTime}
-          onClick={() => handleSelectSampleText(0)}
-        />
-        <TextCard
-          title="AI Future"
-          icon={<Brain size={40} />}
-          wordCount={sampleTexts[1].wordCount}
-          readingTime={sampleTexts[1].readingTime}
-          onClick={() => handleSelectSampleText(1)}
-        />
-        <TextCard
-          title="Mindfulness"
-          icon={<Sparkles size={40} />}
-          wordCount={sampleTexts[2].wordCount}
-          readingTime={sampleTexts[2].readingTime}
-          onClick={() => handleSelectSampleText(2)}
-        />
-        <TextCard
-          title="Internet History"
-          icon={<History size={40} />}
-          wordCount={sampleTexts[3].wordCount}
-          readingTime={sampleTexts[3].readingTime}
-          onClick={() => handleSelectSampleText(3)}
-        />
+        <div className={`transition-all duration-700 ease-out ${
+          showCard1 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+        }`}>
+          <TextCard
+            title="Introduction"
+            icon={<BookOpen size={40} />}
+            wordCount={sampleTexts[0].wordCount}
+            readingTime={sampleTexts[0].readingTime}
+            onClick={() => handleSelectSampleText(0)}
+          />
+        </div>
+        <div className={`transition-all duration-700 ease-out ${
+          showCard2 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+        }`}>
+          <TextCard
+            title="AI Future"
+            icon={<Brain size={40} />}
+            wordCount={sampleTexts[1].wordCount}
+            readingTime={sampleTexts[1].readingTime}
+            onClick={() => handleSelectSampleText(1)}
+          />
+        </div>
+        <div className={`transition-all duration-700 ease-out ${
+          showCard3 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+        }`}>
+          <TextCard
+            title="Mindfulness"
+            icon={<Sparkles size={40} />}
+            wordCount={sampleTexts[2].wordCount}
+            readingTime={sampleTexts[2].readingTime}
+            onClick={() => handleSelectSampleText(2)}
+          />
+        </div>
+        <div className={`transition-all duration-700 ease-out ${
+          showCard4 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+        }`}>
+          <TextCard
+            title="Internet History"
+            icon={<History size={40} />}
+            wordCount={sampleTexts[3].wordCount}
+            readingTime={sampleTexts[3].readingTime}
+            onClick={() => handleSelectSampleText(3)}
+          />
+        </div>
       </div>
 
       {/* URL input - globe icon, no text labels */}
-      <div className="w-full max-w-xl">
+      <div className={`w-full max-w-xl transition-all duration-700 ease-out ${
+        showUrlInput ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+      }`}>
         <form onSubmit={handleUrlSubmit} className="w-full">
           <div className="relative flex items-center overflow-hidden rounded-full bg-white/10 backdrop-blur-sm transition-all hover:bg-white/15">
             <div className="absolute left-4 text-white/70">

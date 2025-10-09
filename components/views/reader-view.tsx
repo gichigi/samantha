@@ -257,7 +257,7 @@ export default function ReaderView() {
       {/* Main content - audio-first design */}
       <div className="flex-1 flex flex-col items-center justify-center pt-16 pb-32">
         {/* Article title */}
-        <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif font-light text-white mb-12 text-center px-6 max-w-4xl">
+        <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-12 text-center px-6 max-w-4xl tracking-wide">
           {currentTitle}
         </h1>
         

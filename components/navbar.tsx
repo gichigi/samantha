@@ -82,7 +82,7 @@ export default function Navbar() {
           {showBackButton && (
             <button
               onClick={handleBackClick}
-              className="rounded-full bg-white/10 p-2 hover:bg-white/20 transition-colors"
+              className="rounded-2xl bg-white/10 p-2 hover:bg-white/20 transition-colors"
               aria-label="Go back to home"
               title="Go back"
             >
@@ -94,7 +94,7 @@ export default function Navbar() {
         <div className="flex items-center space-x-4">
           <Link 
             href="/history" 
-            className="flex items-center px-3 py-2 rounded-md bg-white/10 hover:bg-white/20 transition-colors"
+            className="flex items-center px-3 py-2 rounded-2xl bg-white/10 hover:bg-white/20 transition-colors"
             aria-label="View reading history"
             title="History"
           >
@@ -103,7 +103,7 @@ export default function Navbar() {
           
           {/* Article count display - numbers only */}
           <div 
-            className="text-white/90 text-sm font-medium px-3 py-2 bg-white/10 rounded-md"
+            className="text-white/90 text-sm font-medium px-3 py-2 bg-white/10 rounded-2xl"
             aria-label={`${usage.remaining} of ${usage.limit} articles remaining today`}
             title={`${usage.remaining}/${usage.limit} articles left`}
           >
