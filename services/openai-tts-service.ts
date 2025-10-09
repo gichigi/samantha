@@ -63,6 +63,7 @@ Ensure you preserve paragraph structure with proper line breaks.
 
   private audioUrl: string | null = null
   private audioLoaded = false // Track if audio is loaded
+  private lastLoggedUrl: string | null = null // Track last logged audio URL
 
   // For handling multiple chunks
   private textChunks: string[] = []
@@ -116,7 +117,11 @@ Ensure you preserve paragraph structure with proper line breaks.
     // Add canplaythrough event to track when audio is fully loaded
     this.audio.addEventListener("canplaythrough", () => {
       this.audioLoaded = true
-      console.log("Audio loaded and ready to play")
+      // Only log once per audio URL to avoid duplicates
+      if (this.audioUrl && this.lastLoggedUrl !== this.audioUrl) {
+        this.lastLoggedUrl = this.audioUrl
+        console.log("Audio loaded and ready to play")
+      }
     })
   }
 
@@ -132,7 +137,9 @@ Ensure you preserve paragraph structure with proper line breaks.
     if (onAutoplayBlocked) {
       this.onAutoplayBlocked = onAutoplayBlocked
     }
-    this.onProgressUpdate = onProgressUpdate
+    if (onProgressUpdate) {
+      this.onProgressUpdate = onProgressUpdate
+    }
   }
 
   // Calculate estimated word timestamps
@@ -331,7 +338,6 @@ Ensure you preserve paragraph structure with proper line breaks.
           }
           this.audioUrl = URL.createObjectURL(audioBlob)
         }
-      }
 
       // Set the audio source
       if (this.audio && this.audioUrl) {
@@ -486,8 +492,8 @@ Ensure you preserve paragraph structure with proper line breaks.
     return blob
   }
 
-  // Generate audio for a single text chunk
-  private async generateAudioForText(text: string): Promise<Blob> {
+  // Generate audio for a single text chunk with retry logic
+  private async generateAudioForText(text: string, retries = 2): Promise<Blob> {
     // Generate cache key based on text, model, voice and speed
     const cacheKey = this.getAudioCacheKey(text)
 
@@ -496,33 +502,63 @@ Ensure you preserve paragraph structure with proper line breaks.
       return OpenAITTSService.audioCache.get(cacheKey)!
     }
 
-    // Fetch audio for the text using the API
-    const response = await fetch("/api/tts-simple", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        text: text,
-        voice: this.voice,
-        speed: this.speed,
-        model: this.model,
-      }),
-    })
+    let lastError: Error | null = null
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
-      throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.error || "Unknown error"}`)
+    // Retry logic for transient OpenAI errors
+    for (let attempt = 0; attempt <= retries; attempt++) {
+      try {
+        console.log(`Generating audio (attempt ${attempt + 1}/${retries + 1})...`)
+        
+        const response = await fetch("/api/tts-simple", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            text: text,
+            voice: this.voice,
+            speed: this.speed,
+            model: this.model,
+          }),
+        })
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}))
+          const errorMsg = errorData.error || "Unknown error"
+          
+          // Check if it's a retryable error
+          if (response.status === 500 || response.status === 503) {
+            throw new Error(`OpenAI server error (${response.status}): ${errorMsg}`)
+          } else {
+            // Don't retry on 4xx errors (client errors)
+            throw new Error(`API error (${response.status}): ${errorMsg}`)
+          }
+        }
+
+        // Get the audio blob
+        const blob = await response.blob()
+        console.log(`Audio chunk received: ${blob.size} bytes`)
+
+        // Cache the result
+        OpenAITTSService.audioCache.set(cacheKey, blob)
+
+        return blob
+      } catch (error) {
+        lastError = error as Error
+        
+        // If it's not the last attempt and it's a retryable error, wait and retry
+        if (attempt < retries && lastError.message.includes("server error")) {
+          const waitTime = Math.pow(2, attempt) * 1000 // Exponential backoff: 1s, 2s
+          console.log(`Retrying in ${waitTime}ms...`)
+          await new Promise(resolve => setTimeout(resolve, waitTime))
+        } else {
+          // Don't retry on client errors or last attempt
+          throw lastError
+        }
+      }
     }
 
-    // Get the audio blob
-    const blob = await response.blob()
-    console.log(`Audio chunk received: ${blob.size} bytes, type: ${blob.type}`)
-
-    // Cache the result
-    OpenAITTSService.audioCache.set(cacheKey, blob)
-
-    return blob
+    throw lastError || new Error("Failed to generate audio")
   }
 
   // Update the audio with cached version when model changes
@@ -804,6 +840,28 @@ Ensure you preserve paragraph structure with proper line breaks.
       speed: this.speed,
       model: this.model,
     }
+  }
+
+  // Get current playback time in seconds
+  public getCurrentTime(): number {
+    return this.audio?.currentTime || 0
+  }
+
+  // Get audio duration in seconds
+  public getDuration(): number {
+    return this.audio?.duration || 0
+  }
+
+  // Set current playback time
+  public setCurrentTime(time: number): void {
+    if (this.audio) {
+      this.audio.currentTime = time
+    }
+  }
+
+  // Check if audio is paused
+  public isPaused(): boolean {
+    return this.audio?.paused ?? true
   }
 
   // Clean up resources

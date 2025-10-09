@@ -1,123 +1,133 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import AudioController from "@/components/audio-controls/audio-controller"
 import AudioVisualizer from "@/components/audio-visualizer"
 import { useReader } from "@/contexts/reader-context"
 import { useViewState } from "@/hooks/use-view-state"
-import { useAudioPlayer } from "@/hooks/use-audio-player"
-import { getTTSService } from "@/services/tts-service"
+import { getOpenAITTSService } from "@/services/openai-tts-service"
 
 export default function ReaderView() {
   const {
-    currentTextIndex,
     currentTitle,
     currentUrl,
     audioUrl,
-    currentText,
-    processedText,
-    useTimestampHighlighting,
     trackReading,
     wordCount,
   } = useReader()
 
   const { transitionTo, isFadingOut, isFadingIn } = useViewState()
+  
+  // Audio playback state
+  const [isPlaying, setIsPlaying] = useState(false)
+  const [progress, setProgress] = useState(0)
+  const [duration, setDuration] = useState(0)
+  const [currentTime, setCurrentTime] = useState(0)
+  const [isReady, setIsReady] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [ttsSupported, setTTSSupported] = useState(true)
+  const [autoplayBlocked, setAutoplayBlocked] = useState(false)
+  
+  const ttsServiceRef = useRef(getOpenAITTSService())
+  const progressIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const audioInitializedRef = useRef<string | null>(null)
 
-  // Set up audio player
-  const {
-    isPlaying,
-    progress,
-    isReady,
-    error: audioError,
-    autoplayBlocked,
-    selectedVoice,
-    duration,
-    currentTime,
-    play,
-    pause,
-    toggle,
-    seek,
-    skipForward,
-    skipBackward,
-    setVoiceInfo,
-  } = useAudioPlayer({
-    audioUrl,
-    onTimeUpdate: (currentTime) => {
-      // Time updates handled by audio visualizer
-    },
-    onEnded: () => {
-      // Track completed reading when finished
-      if (currentUrl) {
-        trackReading(currentUrl, currentTitle, wordCount)
-      }
-    },
-  })
-
-  // Initialize TTS service and check compatibility
+  // Initialize TTS service with audio URL
   useEffect(() => {
-    const tts = getTTSService()
+    if (!audioUrl || audioInitializedRef.current === audioUrl) return
+
+    const ttsService = ttsServiceRef.current
     
-    // Check if TTS is supported
-    const isSupported = tts.isFeatureSupported()
-    setTTSSupported(isSupported)
-    
-    if (!isSupported) {
-      setError("Text-to-speech is not supported in this browser. Try Chrome, Edge, or Safari.")
+    // Audio should already be prepared from LoadingView
+    const url = ttsService.getAudioUrl()
+    if (url === audioUrl) {
+      setIsReady(true)
+      audioInitializedRef.current = audioUrl
+      console.log("Audio ready for playback")
+    } else {
+      console.error("Audio URL mismatch")
+      setError("Audio not ready")
     }
+  }, [audioUrl])
+
+  // Track progress while playing
+  useEffect(() => {
+    if (!isPlaying) {
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current)
+        progressIntervalRef.current = null
+      }
+      return
+    }
+
+    // Update progress every 50ms while playing
+    progressIntervalRef.current = setInterval(() => {
+      const ttsService = ttsServiceRef.current
+      
+      if (!ttsService.isPaused()) {
+        const time = ttsService.getCurrentTime()
+        const dur = ttsService.getDuration()
+        
+        setCurrentTime(time)
+        setDuration(dur)
+        
+        if (dur > 0) {
+          const progressPercent = (time / dur) * 100
+          setProgress(progressPercent)
+        }
+      }
+    }, 50)
+
+    return () => {
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current)
+        progressIntervalRef.current = null
+      }
+    }
+  }, [isPlaying])
+
+  // Set up TTS callbacks
+  useEffect(() => {
+    const ttsService = ttsServiceRef.current
     
-    // Set up error callback
-    tts.setCallbacks(
-      // Word change callback
-      (index) => {
-        // This is handled by highlighter components
-      },
-      // Finish callback
+    ttsService.setCallbacks(
+      () => {}, // Word change - not needed for now
       () => {
+        // Track reading on finish
+        setIsPlaying(false)
         if (currentUrl) {
           trackReading(currentUrl, currentTitle, wordCount)
         }
       },
-      // Error callback
-      (errorMsg) => {
-        setError(errorMsg)
-      },
-      // Voice selected callback
-      (voice) => {
-        if (voice) {
-          setVoiceInfo(voice.name, voice.lang)
-        } else {
-          setVoiceInfo(null)
-        }
+      () => {
+        // Autoplay blocked
+        setAutoplayBlocked(true)
+        setIsPlaying(false)
       }
     )
-    
-    // Note: Removed browser TTS voice check since we use OpenAI TTS API
-    // which doesn't require browser voices
-  }, [currentUrl, currentTitle, wordCount, useTimestampHighlighting, audioUrl])
 
-
-  // Handle audio errors
-  useEffect(() => {
-    if (audioError) {
-      setError(audioError)
-    }
-  }, [audioError])
-
-  // Clean up audio loading if component unmounts during loading
-  useEffect(() => {
     return () => {
-      // Call the cleanup function if it exists
-      if (window.__audioCleanup) {
-        window.__audioCleanup();
-        window.__audioCleanup = undefined;
+      // Cleanup on unmount
+      ttsService.stop()
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current)
       }
-    };
-  }, []);
+    }
+  }, [currentUrl, currentTitle, wordCount, trackReading])
 
   // Setup nav context 
   useEffect(() => {
+    const goToHomeScreen = () => {
+      // Stop any playing audio
+      const ttsService = ttsServiceRef.current
+      if (isPlaying) {
+        ttsService.pause()
+        setIsPlaying(false)
+      }
+
+      // Transition back to home screen with fade effect
+      transitionTo("home", true)
+    }
+
     // Set back button handler in the navbar via custom event
     const setBackHandler = new CustomEvent('setBackHandler', { 
       detail: { handler: goToHomeScreen }
@@ -129,12 +139,14 @@ export default function ReaderView() {
       const clearBackHandler = new CustomEvent('clearBackHandler');
       window.dispatchEvent(clearBackHandler);
     };
-  }, []);
+  }, [isPlaying, transitionTo]);
 
   const goToHomeScreen = () => {
     // Stop any playing audio
+    const ttsService = ttsServiceRef.current
     if (isPlaying) {
-      pause()
+      ttsService.pause()
+      setIsPlaying(false)
     }
 
     // Transition back to home screen with fade effect
@@ -142,24 +154,64 @@ export default function ReaderView() {
   }
 
   const handleTogglePlay = () => {
-    toggle()
+    const ttsService = ttsServiceRef.current
+    
+    if (isPlaying) {
+      ttsService.pause()
+      setIsPlaying(false)
+    } else {
+      // Resume from current position
+      ttsService.resume()
+      setIsPlaying(true)
+      setError(null)
+    }
   }
 
   const handleSeek = (position: number) => {
-    seek(position)
+    const ttsService = ttsServiceRef.current
+    const dur = ttsService.getDuration()
+    
+    if (dur > 0) {
+      const seekTime = (position / 100) * dur
+      ttsService.setCurrentTime(seekTime)
+      setCurrentTime(seekTime)
+      setProgress(position)
+    }
   }
 
-  const handleRetry = () => {
+  const handleRetry = async () => {
     setError(null)
-    play()
+    setAutoplayBlocked(false)
+    
+    try {
+      const ttsService = ttsServiceRef.current
+      await ttsService.speak()
+      setIsPlaying(true)
+    } catch (err) {
+      console.error("Retry playback error:", err)
+      setError("Failed to play audio")
+    }
   }
 
   const handleSkipForward = () => {
-    skipForward(10)
+    const ttsService = ttsServiceRef.current
+    const dur = ttsService.getDuration()
+    const currentTime = ttsService.getCurrentTime()
+    
+    if (dur > 0) {
+      const newTime = Math.min(currentTime + 10, dur)
+      ttsService.setCurrentTime(newTime)
+      setCurrentTime(newTime)
+    }
   }
 
   const handleSkipBackward = () => {
-    skipBackward(10)
+    const ttsService = ttsServiceRef.current
+    const currentTime = ttsService.getCurrentTime()
+    
+    const newTime = Math.max(currentTime - 10, 0)
+    ttsService.setCurrentTime(newTime)
+    setCurrentTime(newTime)
   }
 
   return (
@@ -228,8 +280,8 @@ export default function ReaderView() {
         onSkipBackward={handleSkipBackward}
         visible={true}
         error={error}
-        voiceInfo={selectedVoice}
-        isSupported={ttsSupported}
+        voiceInfo={null}
+        isSupported={true}
         autoplayBlocked={autoplayBlocked}
         onRetry={handleRetry}
       />
