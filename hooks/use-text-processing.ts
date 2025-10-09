@@ -11,11 +11,11 @@ interface UseTextProcessingProps {
 }
 
 export function useTextProcessing({ onProgressUpdate, onAudioReady, onError }: UseTextProcessingProps = {}) {
-  const { setProcessedText } = useReader()
+  const { setProcessedText, setCurrentTitle } = useReader()
   const [isLoading, setIsLoading] = useState(false)
 
   // Process text and prepare audio
-  const processText = async (text: string) => {
+  const processText = async (text: string, title?: string) => {
     setIsLoading(true)
 
     // Sanitize the input text
@@ -37,10 +37,15 @@ export function useTextProcessing({ onProgressUpdate, onAudioReady, onError }: U
       )
 
       // Prepare the TTS with the sanitized text (includes preprocessing)
-      const processed = await ttsService.prepare(sanitizedText)
+      const result = await ttsService.prepare(sanitizedText, { title })
 
       // Store the processed text
-      setProcessedText(processed)
+      setProcessedText(result.text)
+
+      // Update the title if normalized
+      if (result.normalizedTitle) {
+        setCurrentTitle(result.normalizedTitle)
+      }
 
       // Get the audio URL
       const audioUrl = ttsService.getAudioUrl()

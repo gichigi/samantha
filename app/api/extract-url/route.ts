@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { getContentExtractionService, ExtractionErrorType } from "@/services/content-extraction-service"
+import { validateUrl } from "@/utils/url-validation"
 
 export async function POST(request: Request) {
   try {
@@ -18,7 +19,7 @@ export async function POST(request: Request) {
       }, { status: 400 })
     }
 
-    // Validate request
+    // Validate request body contains URL
     const url = body?.url
     if (!url) {
       return NextResponse.json({ 
@@ -32,40 +33,12 @@ export async function POST(request: Request) {
 
     console.log(`Extracting content from URL: ${url}`)
 
-    // Additional URL validation on server side
-    try {
-      const urlObj = new URL(url)
-      const pathname = urlObj.pathname.toLowerCase()
-      
-      // Block PDF files - they're expensive to process
-      if (pathname.endsWith('.pdf')) {
-        return NextResponse.json({ 
-          error: {
-            code: "UNSUPPORTED_FILE_TYPE",
-            message: "PDF files are not supported",
-            suggestion: "Please try a web article instead. PDFs are too expensive to process."
-          }
-        }, { status: 400 })
-      }
-
-      // Block other document types
-      const unsupportedExtensions = ['.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.zip', '.rar']
-      if (unsupportedExtensions.some(ext => pathname.endsWith(ext))) {
-        return NextResponse.json({ 
-          error: {
-            code: "UNSUPPORTED_FILE_TYPE",
-            message: "Document files are not supported",
-            suggestion: "Please use a web article URL instead."
-          }
-        }, { status: 400 })
-      }
-    } catch (urlError) {
+    // Validate URL using shared validation utility
+    const validation = validateUrl(url)
+    if (!validation.isValid) {
+      console.error("URL validation failed:", validation.error?.code, validation.error?.message)
       return NextResponse.json({ 
-        error: {
-          code: "INVALID_URL",
-          message: "Invalid URL format",
-          suggestion: "Please provide a valid web URL (e.g., https://example.com/article)"
-        }
+        error: validation.error 
       }, { status: 400 })
     }
 

@@ -6,6 +6,7 @@
 
 import * as cheerio from "cheerio"
 import { getFirecrawlService } from "./firecrawl-service"
+import { validateContentType } from "@/utils/url-validation"
 
 // Error types for better error handling
 export enum ExtractionErrorType {
@@ -123,6 +124,21 @@ export class ContentExtractionService {
           `Failed to fetch URL: ${response.status} ${response.statusText}`
         )
       }
+
+      // Check Content-Type to ensure it's not a blocked file type
+      const contentType = response.headers.get('content-type')
+      const contentTypeValidation = validateContentType(contentType)
+      
+      if (!contentTypeValidation.isValid) {
+        console.error("Content-Type validation failed:", contentType, contentTypeValidation.error?.code)
+        throw this.createError(
+          ExtractionErrorType.ACCESS_ERROR,
+          contentTypeValidation.error?.message || 'Unsupported content type',
+          contentTypeValidation.error?.suggestion
+        )
+      }
+
+      console.log(`✓ Content-Type validation passed: ${contentType}`)
 
       const html = await response.text()
       const $ = cheerio.load(html)

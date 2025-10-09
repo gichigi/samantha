@@ -4,51 +4,11 @@ import type React from "react"
 
 import { useState } from "react"
 import { Globe, AlertCircle } from "lucide-react"
+import { validateUrl } from "@/utils/url-validation"
 
 interface UrlInputProps {
   onSubmit: (url: string) => void
   isLoading: boolean
-}
-
-// URL validation utility
-const validateUrl = (url: string): { isValid: boolean; error?: string } => {
-  // Basic URL format validation
-  try {
-    const urlObj = new URL(url)
-    
-    // Check for PDF files - they're expensive to process
-    const pathname = urlObj.pathname.toLowerCase()
-    if (pathname.endsWith('.pdf')) {
-      return {
-        isValid: false,
-        error: "Can't read PDF files. Try copying a web article URL instead."
-      }
-    }
-
-    // Check for other unsupported file types
-    const unsupportedExtensions = ['.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.zip', '.rar']
-    if (unsupportedExtensions.some(ext => pathname.endsWith(ext))) {
-      return {
-        isValid: false,
-        error: "Can't read document files. Please paste a web article URL."
-      }
-    }
-
-    // Check for reasonable protocols
-    if (!['http:', 'https:'].includes(urlObj.protocol)) {
-      return {
-        isValid: false,
-        error: "Please use a complete web address (like https://example.com)."
-      }
-    }
-
-    return { isValid: true }
-  } catch {
-    return {
-      isValid: false,
-      error: "Please enter a complete web address (like https://example.com/article)"
-    }
-  }
 }
 
 export default function UrlInput({ onSubmit, isLoading, darkMode = true }: UrlInputProps & { darkMode?: boolean }) {
@@ -58,17 +18,17 @@ export default function UrlInput({ onSubmit, isLoading, darkMode = true }: UrlIn
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!url.trim()) {
-      setValidationError("Please paste a web article URL")
-      return
-    }
-
+    // Validate the URL using shared validation utility
     const validation = validateUrl(url.trim())
     if (!validation.isValid) {
-      setValidationError(validation.error || "Invalid URL")
+      // Set error message from validation result
+      const errorMsg = validation.error?.message || "Invalid URL"
+      setValidationError(errorMsg)
+      console.error("URL validation failed:", validation.error?.code, errorMsg)
       return
     }
 
+    // Clear any previous errors and submit
     setValidationError(null)
     onSubmit(url.trim())
   }

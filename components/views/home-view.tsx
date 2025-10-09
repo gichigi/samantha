@@ -8,6 +8,7 @@ import { useReader } from "@/contexts/reader-context"
 import { useUrlExtraction } from "@/hooks/use-url-extraction"
 import { useViewState } from "@/hooks/use-view-state"
 import { LocalUsageService } from "@/services/local-usage-service"
+import { validateUrl } from "@/utils/url-validation"
 
 export default function HomeView() {
   const {
@@ -70,57 +71,15 @@ export default function HomeView() {
     transitionTo("loading", true)
   }
 
-  const validateUrl = (url: string): { isValid: boolean; error?: string } => {
-    try {
-      const urlObj = new URL(url)
-      
-      // Check for PDF files
-      const pathname = urlObj.pathname.toLowerCase()
-      if (pathname.endsWith('.pdf')) {
-        return {
-          isValid: false,
-          error: "Can't read PDF files. Try a web article URL instead."
-        }
-      }
-
-      // Check for other unsupported file types
-      const unsupportedExtensions = ['.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.zip', '.rar']
-      if (unsupportedExtensions.some(ext => pathname.endsWith(ext))) {
-        return {
-          isValid: false,
-          error: "Can't read document files. Please paste a web article URL."
-        }
-      }
-
-      // Check for reasonable protocols
-      if (!['http:', 'https:'].includes(urlObj.protocol)) {
-        return {
-          isValid: false,
-          error: "Please use a complete web address (like https://example.com)."
-        }
-      }
-
-      return { isValid: true }
-    } catch {
-      return {
-        isValid: false,
-        error: "Please enter a complete web address (like https://example.com/article)"
-      }
-    }
-  }
-
   const handleUrlSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!url.trim()) {
-      setValidationError("Please paste a web article URL")
-      return
-    }
-
-    // Validate URL format
+    // Validate URL format using shared validation utility
     const validation = validateUrl(url.trim())
     if (!validation.isValid) {
-      setValidationError(validation.error || "Invalid URL")
+      const errorMsg = validation.error?.message || "Invalid URL"
+      setValidationError(errorMsg)
+      console.error("URL validation failed:", validation.error?.code, errorMsg)
       return
     }
 

@@ -20,6 +20,7 @@ export async function POST(request: Request) {
 
     // Validate request
     const text = body?.text
+    const title = body?.title || ""
     const instructions = body?.instructions || ""
     const model = body?.model || "gpt-4.5-preview" // Default to gpt-4.5-preview if not specified
 
@@ -27,7 +28,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Text is required" }, { status: 400 })
     }
 
-    console.log(`Preprocessing text with ${model}, text length: ${text.length}`)
+    console.log(`Preprocessing text with ${model}, text length: ${text.length}${title ? `, title: "${title}"` : ""}`)
 
     // Determine the correct API endpoint and parameters based on model
     const apiEndpoint = "https://api.openai.com/v1/chat/completions"
@@ -39,7 +40,7 @@ export async function POST(request: Request) {
         },
         {
           role: "user",
-          content: text,
+          content: title ? `Title: ${title}\n\nContent: ${text}` : text,
         },
       ],
       temperature: 0.6, // Using the updated temperature value as requested
@@ -77,12 +78,27 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "Invalid response from OpenAI" }, { status: 500 })
       }
 
-      const preprocessedText = responseData.choices[0].message.content || text
+      const fullResponse = responseData.choices[0].message.content || text
+      
+      // Extract normalized title if present
+      let preprocessedText = fullResponse
+      let normalizedTitle = title // Default to original title
+      
+      if (title && fullResponse.includes("NORMALIZED_TITLE:")) {
+        const lines = fullResponse.split('\n')
+        const titleLine = lines.find(line => line.trim().startsWith("NORMALIZED_TITLE:"))
+        if (titleLine) {
+          normalizedTitle = titleLine.replace("NORMALIZED_TITLE:", "").trim()
+          // Remove the title line from the main text
+          preprocessedText = lines.filter(line => !line.trim().startsWith("NORMALIZED_TITLE:")).join('\n').trim()
+        }
+      }
 
-      console.log(`Text preprocessed successfully with ${model}, new length: ${preprocessedText.length}`)
+      console.log(`Text preprocessed successfully with ${model}, new length: ${preprocessedText.length}${normalizedTitle !== title ? `, normalized title: "${normalizedTitle}"` : ""}`)
 
       return NextResponse.json({
         text: preprocessedText,
+        normalizedTitle: normalizedTitle,
         model: model,
       })
     } catch (error: any) {

@@ -14,7 +14,7 @@ interface LoadingViewProps {
 export default function LoadingView({ progress, message }: LoadingViewProps) {
   const [displayProgress, setDisplayProgress] = useState(progress || 0)
   const [error, setError] = useState<string | null>(null)
-  const { currentText, audioUrl, setAudioUrl } = useReader()
+  const { currentText, currentTitle, audioUrl, setAudioUrl } = useReader()
   const { transitionTo } = useViewState()
   const processingStartedRef = useRef(false)
   
@@ -50,12 +50,12 @@ export default function LoadingView({ progress, message }: LoadingViewProps) {
     if (currentText && !audioUrl && !processingStartedRef.current) {
       processingStartedRef.current = true
       
-      processText(currentText).catch((error) => {
+      processText(currentText, currentTitle).catch((error) => {
         console.error("Audio generation failed:", error)
         processingStartedRef.current = false
       })
     }
-  }, [currentText, audioUrl]) // Only depend on currentText and audioUrl
+  }, [currentText, currentTitle, audioUrl]) // Only depend on currentText, currentTitle and audioUrl
 
   // Simulate progress if none is provided
   useEffect(() => {

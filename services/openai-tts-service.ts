@@ -26,6 +26,21 @@ Your task is to make minimal but effective changes to help the article sound nat
 
 ⸻
 
+If a title is provided, normalize it to be concise and readable:
+- Remove site names, branding (e.g., "| SiteName", "- Blog")
+- Remove SEO keywords and dates
+- Keep it under 60 characters
+- Maintain the core meaning
+- Return the normalized title on a separate line with "NORMALIZED_TITLE: " prefix
+
+Examples:
+- "Make Something Heavy - by Anu - Working Theorys" → "Make Something Heavy"
+- "The Future of AI | TechCrunch - Latest News 2024" → "The Future of AI"
+- "How to Code Better: A Complete Guide - Blog Name" → "How to Code Better"
+- "10 Tips for Success in 2024 | Best Practices Guide" → "10 Tips for Success"
+
+⸻
+
 Start with a short spoken introduction (under 10 seconds) that includes:
 •	A natural, conversational summary of the title
 •	Estimated reading time (based on word count)
@@ -74,7 +89,7 @@ Ensure you preserve paragraph structure with proper line breaks.
   // Cache for previously generated audio (improved caching)
   // Cache key format: text-model-voice-speed
   private static audioCache: Map<string, Blob> = new Map()
-  private static preprocessCache: Map<string, Map<string, string>> = new Map() // model -> [text -> preprocessed]
+  private static preprocessCache: Map<string, Map<string, { text: string; normalizedTitle?: string }>> = new Map() // model -> [text -> preprocessed]
 
   constructor() {
     if (typeof window !== "undefined") {
@@ -184,16 +199,16 @@ Ensure you preserve paragraph structure with proper line breaks.
   }
 
   // Preprocess text using selected GPT model
-  public async preprocessText(text: string, model = "gpt-4o-mini"): Promise<string> {
+  public async preprocessText(text: string, model = "gpt-4o-mini", title?: string): Promise<{ text: string; normalizedTitle?: string }> {
     // Initialize model cache if it doesn't exist
     if (!OpenAITTSService.preprocessCache.has(model)) {
-      OpenAITTSService.preprocessCache.set(model, new Map())
+      OpenAITTSService.preprocessCache.set(model, new Map<string, { text: string; normalizedTitle?: string }>())
     }
 
     const modelCache = OpenAITTSService.preprocessCache.get(model)!
 
     // Check cache first
-    const cacheKey = text.substring(0, 100)
+    const cacheKey = `${text.substring(0, 100)}-${title || 'no-title'}`
     if (modelCache.has(cacheKey)) {
       console.log(`Using cached preprocessed text for model ${model}`)
       return modelCache.get(cacheKey)!
@@ -210,6 +225,7 @@ Ensure you preserve paragraph structure with proper line breaks.
         },
         body: JSON.stringify({
           text: text,
+          title: title,
           instructions: this.preprocessingInstructions,
           model: model,
         }),
@@ -230,17 +246,20 @@ Ensure you preserve paragraph structure with proper line breaks.
       }
 
       const preprocessedText = data.text
+      const normalizedTitle = data.normalizedTitle
 
-      console.log(`Text preprocessed successfully using ${model}`)
+      console.log(`Text preprocessed successfully using ${model}${normalizedTitle ? `, normalized title: "${normalizedTitle}"` : ""}`)
+
+      const result = { text: preprocessedText, normalizedTitle }
 
       // Cache the result
-      modelCache.set(cacheKey, preprocessedText)
+      modelCache.set(cacheKey, result)
 
-      return preprocessedText
+      return result
     } catch (error) {
       console.error(`Error preprocessing text with ${model}:`, error)
       // Fall back to original text if preprocessing fails
-      return text
+      return { text: text, normalizedTitle: title }
     }
   }
 
@@ -250,10 +269,12 @@ Ensure you preserve paragraph structure with proper line breaks.
     options: {
       skipPreprocessing?: boolean
       preprocessModel?: string
+      title?: string
     } = {},
-  ): Promise<string> {
+  ): Promise<{ text: string; normalizedTitle?: string }> {
     const skipPreprocessing = options.skipPreprocessing || false
     const preprocessModel = options.preprocessModel || "gpt-4o-mini"
+    const title = options.title
 
     this.text = text
     this.totalWords = text.split(" ").length
@@ -266,6 +287,7 @@ Ensure you preserve paragraph structure with proper line breaks.
     this.combinedAudioBlob = null
 
     let processedText = text
+    let normalizedTitle = title
 
     try {
       console.log("Preparing text, length:", text.length)
@@ -276,7 +298,9 @@ Ensure you preserve paragraph structure with proper line breaks.
           this.onProgressUpdate(30)
         }
         // Preprocess text first if not skipped
-        processedText = await this.preprocessText(text, preprocessModel)
+        const preprocessResult = await this.preprocessText(text, preprocessModel, title)
+        processedText = preprocessResult.text
+        normalizedTitle = preprocessResult.normalizedTitle
         // Report 60% progress (preprocessing done)
         if (this.onProgressUpdate) {
           this.onProgressUpdate(60)
@@ -357,7 +381,7 @@ Ensure you preserve paragraph structure with proper line breaks.
       }
 
       console.log("Audio prepared successfully")
-      return processedText // Return the processed text for display
+      return { text: processedText, normalizedTitle } // Return the processed text and normalized title
     } catch (error) {
       console.error("Error preparing audio:", error)
       throw error
