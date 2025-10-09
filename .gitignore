@@ -25,3 +25,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# development artifacts
+.cursor/
+.vscode/
+test-*.js
+*.test.js
+scratchpad.*

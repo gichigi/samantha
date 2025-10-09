@@ -1,0 +1,19 @@
+# robots.txt for Samantha
+# She reads the internet, out loud, just for you
+
+User-agent: *
+Allow: /
+
+# Allow all major search engines
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Slurp
+Allow: /
+
+# Sitemap location
+Sitemap: https://samantha.vercel.app/sitemap.xml
+

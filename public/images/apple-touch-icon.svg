@@ -1,13 +1,43 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="180" height="180" viewBox="0 0 180 180">
-  <!-- Background -->
-  <rect width="180" height="180" fill="#3B82F6" rx="45" ry="45" />
+<svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Apple touch icon with rounded corners and warm gradient background -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#60a5fa;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3b82f6;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="centerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#e0f2fe;stop-opacity:1" />
+    </linearGradient>
+  </defs>
   
-  <!-- Letter "S" - slightly adjusted for better appearance at small sizes -->
-  <path d="M125 65c0-16-16-25-32-25-18 0-30 7-34 21l22 5c2-5 5-9 12-9 5 0 11 4 11 9 0 14-50 5-50 41 0 16 14 26 32 26 16 0 28-7 32-19l-22-5c-2 5-5 9-11 9-5 0-11-2-11-9 0-12 50-5 50-39z" fill="white" />
+  <!-- Background with rounded corners -->
+  <rect width="180" height="180" rx="40" fill="url(#bgGradient)"/>
   
-  <!-- Decorative Sound Wave Lines -->
-  <path d="M32 90 H52" stroke="white" stroke-width="4" stroke-linecap="round" />
-  <path d="M23 90 H28" stroke="white" stroke-width="3" stroke-linecap="round" />
-  <path d="M128 90 H148" stroke="white" stroke-width="4" stroke-linecap="round" />
-  <path d="M152 90 H157" stroke="white" stroke-width="3" stroke-linecap="round" />
-</svg> 
+  <!-- Center circle - Samantha's core -->
+  <circle cx="90" cy="90" r="20" fill="url(#centerGradient)"/>
+  
+  <!-- Inner sound waves -->
+  <path d="M 60 90 Q 60 70, 90 70 Q 120 70, 120 90 Q 120 110, 90 110 Q 60 110, 60 90" 
+        stroke="white" 
+        stroke-width="5" 
+        fill="none" 
+        stroke-linecap="round"
+        opacity="0.7"/>
+  
+  <!-- Middle sound waves -->
+  <path d="M 45 90 Q 45 55, 90 55 Q 135 55, 135 90 Q 135 125, 90 125 Q 45 125, 45 90" 
+        stroke="white" 
+        stroke-width="4" 
+        fill="none" 
+        stroke-linecap="round"
+        opacity="0.5"/>
+  
+  <!-- Outer sound waves -->
+  <path d="M 30 90 Q 30 40, 90 40 Q 150 40, 150 90 Q 150 140, 90 140 Q 30 140, 30 90" 
+        stroke="white" 
+        stroke-width="3" 
+        fill="none" 
+        stroke-linecap="round"
+        opacity="0.3"/>
+</svg>

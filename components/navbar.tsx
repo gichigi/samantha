@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { History, ChevronLeft } from "lucide-react"
+import { ChevronLeft } from "lucide-react"
 import { LocalUsageService } from "@/services/local-usage-service"
 
 export default function Navbar() {
@@ -92,15 +92,6 @@ export default function Navbar() {
         </div>
         
         <div className="flex items-center space-x-4">
-          <Link 
-            href="/history" 
-            className="flex items-center px-3 py-2 rounded-2xl bg-white/10 hover:bg-white/20 transition-colors"
-            aria-label="View reading history"
-            title="History"
-          >
-            <History size={20} className="text-white" />
-          </Link>
-          
           {/* Article count display - numbers only */}
           <div 
             className="text-white/90 text-sm font-medium px-3 py-2 bg-white/10 rounded-2xl"

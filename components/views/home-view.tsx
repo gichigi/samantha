@@ -7,18 +7,17 @@ import { sampleTexts } from "@/data/sample-texts"
 import { useReader } from "@/contexts/reader-context"
 import { useUrlExtraction } from "@/hooks/use-url-extraction"
 import { useViewState } from "@/hooks/use-view-state"
+import { useArticleLoader } from "@/hooks/use-article-loader"
 import { LocalUsageService } from "@/services/local-usage-service"
 import { validateUrl } from "@/utils/url-validation"
 
 export default function HomeView() {
-  const {
-    setCurrentTextIndex,
-    setCurrentTitle,
-    setCurrentUrl,
-    setUseTimestampHighlighting,
-    setAudioUrl,
-    setCurrentText,
-  } = useReader()
+  const { transitionTo } = useViewState()
+  const { isLoading, extractUrl, error: extractionError } = useUrlExtraction()
+  const { loadSampleArticle, loadWebArticle } = useArticleLoader({
+    onError: (error) => setError(error),
+    onSuccess: () => transitionTo("loading", true)
+  })
 
   // Animation state
   const [showDivider, setShowDivider] = useState(false)
@@ -29,8 +28,6 @@ export default function HomeView() {
   const [showCard4, setShowCard4] = useState(false)
   const [showUrlInput, setShowUrlInput] = useState(false)
 
-  const { transitionTo } = useViewState()
-  const { isLoading, extractUrl, error: extractionError } = useUrlExtraction()
   const [error, setError] = useState<string | null>(null)
   const [url, setUrl] = useState("")
   const [validationError, setValidationError] = useState<string | null>(null)
@@ -58,17 +55,7 @@ export default function HomeView() {
 
   // Handle sample article selection with on-demand TTS generation
   const handleSelectSampleText = async (index: number) => {
-    // Set the current text content
-    setCurrentText(sampleTexts[index].content)
-    setCurrentTextIndex(index)
-    setCurrentTitle(sampleTexts[index].title)
-    setUseTimestampHighlighting(false)
-    
-    // Clear any previous audio URL to force TTS generation
-    setAudioUrl(null)
-
-    // Show loading screen with smooth fade transition
-    transitionTo("loading", true)
+    await loadSampleArticle(index)
   }
 
   const handleUrlSubmit = async (e: React.FormEvent) => {
@@ -83,54 +70,10 @@ export default function HomeView() {
       return
     }
 
-    // Check daily limit
-    const canExtract = LocalUsageService.canExtract()
-    if (!canExtract) {
-      const usage = LocalUsageService.getUsage()
-      const resetTime = new Date(usage.resetDate).toLocaleTimeString('en-US', { 
-        hour: 'numeric', 
-        minute: '2-digit' 
-      })
-      setError(`Daily limit reached (${usage.limit} articles). Resets at ${resetTime}`)
-      return
-    }
-
     setValidationError(null)
     setError(null)
 
-    const extractedData = await extractUrl(url.trim())
-
-    if (extractedData) {
-      // Increment usage count
-      LocalUsageService.incrementUsage()
-      
-      // Dispatch event to update navbar
-      window.dispatchEvent(new CustomEvent('usage-updated'))
-      
-      setCurrentTitle(extractedData.title)
-      setCurrentUrl(url.trim())
-      setCurrentText(extractedData.content)
-      setUseTimestampHighlighting(false)
-      setAudioUrl(null) // Clear audio to trigger TTS generation
-
-      // NOW transition to loading for TTS generation
-      transitionTo("loading")
-    } else {
-      // Handle extraction errors
-      if (extractionError) {
-        if (extractionError.code === "USAGE_LIMIT_EXCEEDED") {
-          setError(`Daily limit reached! ${extractionError.suggestion}`)
-        } else if (extractionError.code === "UNSUPPORTED_FILE_TYPE") {
-          setError("Can't read this file type. Try a web article URL instead.")
-        } else if (extractionError.code === "CONTENT_TOO_LONG") {
-          setError("This article is too long. Try a shorter article (under 800 words).")
-        } else if (extractionError.code === "INVALID_URL") {
-          setError("Invalid URL. Please paste a complete web address.")
-        } else {
-          setError("Couldn't extract this content. Please try a different article URL.")
-        }
-      }
-    }
+    await loadWebArticle(url.trim())
   }
 
   const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -253,10 +196,10 @@ export default function HomeView() {
         {/* Error message display - right under URL input */}
         {(error || validationError) && (
           <div 
-            className="bg-red-500/20 p-4 rounded-lg max-w-xl text-center mt-4"
+            className="bg-white/10 backdrop-blur-sm border border-white/20 p-4 rounded-full max-w-xl text-center mt-4 transition-all duration-300"
             role="alert"
           >
-            <p className="text-white text-sm">{error || validationError}</p>
+            <p className="text-white/90 text-sm font-light">{error || validationError}</p>
           </div>
         )}
       </div>

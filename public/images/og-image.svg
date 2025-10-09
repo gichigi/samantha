@@ -1,42 +1,54 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Open Graph image for social media sharing -->
+  <defs>
+    <linearGradient id="ogBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#60a5fa;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#3b82f6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2563eb;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="waveGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.2" />
+      <stop offset="50%" style="stop-color:#ffffff;stop-opacity:0.6" />
+      <stop offset="100%" style="stop-color:#ffffff;stop-opacity:0.2" />
+    </linearGradient>
+  </defs>
+  
   <!-- Background -->
-  <rect width="1200" height="630" fill="#3B82F6" />
+  <rect width="1200" height="630" fill="url(#ogBg)"/>
   
-  <!-- Diagonal wave pattern for background -->
-  <path d="M-100,730 C250,650 350,580 650,550 C950,520 1050,450 1300,370" 
-        stroke="rgba(255,255,255,0.1)" stroke-width="60" fill="none" />
-  <path d="M-100,830 C250,750 350,680 650,650 C950,620 1050,550 1300,470" 
-        stroke="rgba(255,255,255,0.1)" stroke-width="60" fill="none" />
-  <path d="M-100,930 C250,850 350,780 650,750 C950,720 1050,650 1300,570" 
-        stroke="rgba(255,255,255,0.1)" stroke-width="60" fill="none" />
+  <!-- Decorative sound waves in background -->
+  <path d="M 0 315 Q 150 250, 300 315 T 600 315 T 900 315 T 1200 315" 
+        stroke="white" 
+        stroke-width="2" 
+        fill="none" 
+        opacity="0.1"/>
+  <path d="M 0 300 Q 150 235, 300 300 T 600 300 T 900 300 T 1200 300" 
+        stroke="white" 
+        stroke-width="2" 
+        fill="none" 
+        opacity="0.1"/>
+  <path d="M 0 330 Q 150 265, 300 330 T 600 330 T 900 330 T 1200 330" 
+        stroke="white" 
+        stroke-width="2" 
+        fill="none" 
+        opacity="0.1"/>
   
-  <!-- Logo -->
-  <g transform="translate(120, 215) scale(0.8)">
-    <rect width="250" height="250" fill="#3B82F6" rx="62" ry="62" stroke="white" stroke-width="8" />
-    <path d="M170 90c0-22-22-35-45-35-25 0-42 10-47 30l30 7c2-7 7-12 17-12 7 0 15 5 15 12 0 20-70 7-70 57 0 22 20 37 45 37 22 0 40-10 45-27l-30-7c-2 7-7 12-15 12-7 0-15-2-15-12 0-17 70-7 70-55z" fill="white" />
-    <path d="M45 128 H73" stroke="white" stroke-width="6" stroke-linecap="round" />
-    <path d="M32 128 H40" stroke="white" stroke-width="4" stroke-linecap="round" />
-    <path d="M184 128 H212" stroke="white" stroke-width="6" stroke-linecap="round" />
-    <path d="M217 128 H225" stroke="white" stroke-width="4" stroke-linecap="round" />
+  <!-- Central icon -->
+  <g transform="translate(520, 250)">
+    <circle cx="40" cy="40" r="25" fill="white" opacity="0.9"/>
+    <circle cx="40" cy="40" r="40" stroke="white" stroke-width="3" fill="none" opacity="0.6"/>
+    <circle cx="40" cy="40" r="55" stroke="white" stroke-width="2" fill="none" opacity="0.4"/>
+    <circle cx="40" cy="40" r="70" stroke="white" stroke-width="2" fill="none" opacity="0.2"/>
   </g>
   
-  <!-- Text Content -->
-  <text x="440" y="235" font-family="Arial, sans-serif" font-weight="bold" font-size="80" fill="white">Samantha</text>
-  <text x="440" y="315" font-family="Arial, sans-serif" font-weight="normal" font-size="38" fill="white">She reads the internet, out loud, just for you.</text>
-  
-  <!-- Feature bullets -->
-  <g transform="translate(440, 380)">
-    <circle cx="12" cy="12" r="6" fill="white" />
-    <text x="35" y="20" font-family="Arial, sans-serif" font-size="28" fill="white">Natural, expressive voice</text>
-  </g>
-  
-  <g transform="translate(440, 430)">
-    <circle cx="12" cy="12" r="6" fill="white" />
-    <text x="35" y="20" font-family="Arial, sans-serif" font-size="28" fill="white">Read articles while commuting or exercising</text>
-  </g>
-  
-  <g transform="translate(440, 480)">
-    <circle cx="12" cy="12" r="6" fill="white" />
-    <text x="35" y="20" font-family="Arial, sans-serif" font-size="28" fill="white">Transform your reading list into a podcast</text>
-  </g>
-</svg> 
+  <!-- Text content -->
+  <text x="600" y="420" font-family="system-ui, -apple-system, sans-serif" font-size="64" font-weight="600" fill="white" text-anchor="middle">
+    Samantha
+  </text>
+  <text x="600" y="480" font-family="system-ui, -apple-system, sans-serif" font-size="32" font-weight="400" fill="white" text-anchor="middle" opacity="0.9">
+    She reads the internet, out loud, just for you
+  </text>
+  <text x="600" y="540" font-family="system-ui, -apple-system, sans-serif" font-size="20" font-weight="400" fill="white" text-anchor="middle" opacity="0.7">
+    Free • No Sign-ups • Powered by OpenAI
+  </text>
+</svg>

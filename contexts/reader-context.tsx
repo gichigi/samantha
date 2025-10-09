@@ -1,7 +1,6 @@
 "use client"
 
 import { createContext, useContext, useState, type ReactNode } from "react"
-import { LocalHistoryService } from "@/services/local-history-service"
 
 interface ReaderContextProps {
   // Content state
@@ -29,8 +28,6 @@ interface ReaderContextProps {
   setCurrentText: (text: string) => void
   setProcessedText: (text: string) => void
 
-  // Reading tracking
-  trackReading: (url: string, title: string, wordCount: number) => Promise<boolean>
 }
 
 const ReaderContext = createContext<ReaderContextProps | undefined>(undefined)
@@ -90,7 +87,6 @@ export function ReaderProvider({ children }: { children: ReactNode }) {
     setUseTimestampHighlighting,
     setCurrentText: updateCurrentText,
     setProcessedText,
-    trackReading,
   }
 
   return <ReaderContext.Provider value={value}>{children}</ReaderContext.Provider>

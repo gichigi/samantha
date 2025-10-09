@@ -1,6 +1,6 @@
 import type React from "react"
 import "./globals.css"
-import type { Metadata } from "next"
+import type { Metadata, Viewport } from "next"
 import { Inter } from "next/font/google"
 import { ReaderProvider } from "@/contexts/reader-context"
 import { ViewStateProvider } from "@/contexts/view-state-context"
@@ -14,14 +14,30 @@ const inter = Inter({
   variable: "--font-inter",
 })
 
+// Viewport configuration for PWA
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
+  themeColor: '#3b82f6',
+}
+
 // Setup metadata for social sharing and SEO
 export const metadata: Metadata = {
-  title: 'Samantha - She reads the internet, out loud, just for you',
-  description: 'A text-to-speech reading app inspired by the movie Her. Zero-text UI, powered by OpenAI. No authentication required.',
+  title: 'Samantha — Your reading companion who brings articles to life',
+  description: 'Turn any article into a warm, engaging listening experience. Samantha transforms web content into natural speech with personality. Free, no sign-ups, powered by OpenAI.',
+  keywords: ['text to speech', 'article reader', 'TTS', 'audio articles', 'listen to articles', 'OpenAI TTS', 'web reader', 'accessibility', 'Her movie', 'AI voice', 'natural voice', 'article narration'],
+  authors: [{ name: 'Samantha' }],
+  creator: 'Samantha',
+  publisher: 'Samantha',
   metadataBase: new URL('https://samantha.vercel.app'),
+  alternates: {
+    canonical: '/',
+  },
   openGraph: {
-    title: 'Samantha - She reads the internet, out loud, just for you',
-    description: 'A text-to-speech reading app inspired by the movie Her. Zero-text UI, powered by OpenAI.',
+    title: 'Samantha — Your reading companion who brings articles to life',
+    description: 'Turn any article into a warm, engaging listening experience. Free text-to-speech with personality, inspired by "Her".',
     url: 'https://samantha.vercel.app',
     siteName: 'Samantha',
     images: [
@@ -29,7 +45,7 @@ export const metadata: Metadata = {
         url: '/images/og-image.jpg',
         width: 1200,
         height: 630,
-        alt: 'Samantha - She reads the internet, out loud',
+        alt: 'Samantha - A warm, curious AI companion who reads the internet to you',
       }
     ],
     locale: 'en_US',
@@ -37,15 +53,31 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Samantha - She reads the internet, out loud',
-    description: 'A text-to-speech reading app inspired by the movie Her. Zero-text UI, powered by OpenAI.',
+    title: 'Samantha — Your reading companion who brings articles to life',
+    description: 'Turn any article into a warm, engaging listening experience. Free text-to-speech with personality.',
+    creator: '@samantha',
     images: ['/images/og-image.jpg'],
   },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
   icons: {
-    icon: '/images/favicon.svg',
-    shortcut: '/images/favicon.svg',
-    apple: '/images/apple-touch-icon.png',
-  }
+    icon: [
+      { url: '/favicon.ico', sizes: '48x48' },
+      { url: '/favicon.png', sizes: '32x32', type: 'image/png' },
+    ],
+    shortcut: '/favicon.ico',
+    apple: '/apple-touch-icon.png',
+  },
+  manifest: '/manifest.json',
 }
 
 export default function RootLayout({
@@ -53,10 +85,37 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
+  // Structured data for SEO
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'WebApplication',
+    name: 'Samantha',
+    description: 'Turn any article into a warm, engaging listening experience with AI-powered text-to-speech',
+    url: 'https://samantha.vercel.app',
+    applicationCategory: 'UtilityApplication',
+    operatingSystem: 'Web',
+    offers: {
+      '@type': 'Offer',
+      price: '0',
+      priceCurrency: 'USD',
+    },
+    featureList: [
+      'Text-to-speech conversion',
+      'Natural AI voice',
+      'Zero-text universal interface',
+      'No authentication required',
+      'URL content extraction',
+    ],
+  }
+
   return (
     <html lang="en">
       <head>
         <link rel="icon" href="/images/favicon.svg" type="image/svg+xml" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
       </head>
       <body className={`${inter.variable} font-sans`}>
         <ViewStateProvider>
