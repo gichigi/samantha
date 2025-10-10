@@ -14,7 +14,7 @@ export default function TextCard({ title, icon, wordCount, readingTime, onClick 
   return (
     <button
       onClick={onClick}
-      className="group relative flex items-center justify-center bg-white/10 backdrop-blur-sm rounded-2xl p-8 transition-all hover:bg-white/20 hover:scale-105 active:scale-95 aspect-square w-full"
+      className="group relative flex items-center justify-center bg-white/10 backdrop-blur-sm rounded-2xl p-6 transition-all hover:bg-white/20 hover:scale-105 active:scale-95 aspect-square w-full"
       aria-label={`${title}: ${readingTime} minute read`}
       title={`${title}`}
     >
@@ -28,3 +28,5 @@ export default function TextCard({ title, icon, wordCount, readingTime, onClick 
     </button>
   )
 }
+
+

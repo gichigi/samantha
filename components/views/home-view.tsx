@@ -85,11 +85,11 @@ export default function HomeView() {
   }
 
   return (
-    <main className="min-h-screen bg-[#3b82f6] p-6 flex flex-col items-center justify-center" style={{paddingTop: '64px'}}>
+    <main className="min-h-screen bg-[#3b82f6] p-6 flex flex-col items-center justify-start" style={{paddingTop: '80px'}}>
       {/* Balanced Title with Samantha */}
-      <div className="flex flex-col items-center mb-16">
+      <div className="flex flex-col items-center mb-8">
         {/* Title with subtle background */}
-        <div className="relative mb-12">
+        <div className="relative mb-6">
           {/* Subtle background shape */}
           <div className="absolute inset-0 -m-8 bg-white/5 rounded-3xl blur-xl"></div>
           <div className="absolute inset-0 -m-4 bg-white/3 rounded-2xl"></div>
@@ -111,7 +111,7 @@ export default function HomeView() {
       </div>
 
       {/* Sample article cards - icon + reading time only */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full max-w-2xl mb-10">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full max-w-2xl mb-6">
         <div className={`transition-all duration-700 ease-out ${
           showCard1 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
         }`}>
@@ -206,3 +206,5 @@ export default function HomeView() {
     </main>
   )
 }
+
+
