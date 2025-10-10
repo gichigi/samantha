@@ -87,18 +87,18 @@ export function useArticleLoader({ onError, onSuccess }: UseArticleLoaderProps =
   // Load web article by URL
   const loadWebArticle = useCallback(async (url: string) => {
     try {
-      // Check daily limit - TEMPORARILY DISABLED FOR TESTING
-      // const canExtract = LocalUsageService.canExtract()
-      // if (!canExtract) {
-      //   const usage = LocalUsageService.getUsage()
-      //   const resetTime = new Date(usage.resetDate).toLocaleTimeString('en-US', { 
-      //     hour: 'numeric', 
-      //     minute: '2-digit' 
-      //   })
-      //   // Return error message instead of throwing
-      //   onError?.(`I've hit my daily limit. I'll be back at midnight`)
-      //   return false
-      // }
+      // Check daily limit
+      const canExtract = LocalUsageService.canExtract()
+      if (!canExtract) {
+        const usage = LocalUsageService.getUsage()
+        const resetTime = new Date(usage.resetDate).toLocaleTimeString('en-US', { 
+          hour: 'numeric', 
+          minute: '2-digit' 
+        })
+        // Return error message instead of throwing
+        onError?.(`I've hit my daily limit. I'll be back at midnight`)
+        return false
+      }
 
       // Clear state
       clearArticleState()
