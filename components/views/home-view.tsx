@@ -85,9 +85,9 @@ export default function HomeView() {
   }
 
   return (
-    <main className="min-h-screen bg-[#3b82f6] p-6 flex flex-col items-center justify-start" style={{paddingTop: '80px'}}>
+    <main className="min-h-screen bg-[#3b82f6] p-6 flex flex-col items-center justify-start pt-16 md:pt-24">
       {/* Balanced Title with Samantha */}
-      <div className="flex flex-col items-center mb-8">
+      <div className="flex flex-col items-center mb-12 md:mb-16">
         {/* Title with subtle background */}
         <div className="relative mb-6">
           {/* Subtle background shape */}
@@ -111,13 +111,13 @@ export default function HomeView() {
       </div>
 
       {/* Sample article cards - icon + reading time only */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full max-w-2xl mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full max-w-2xl mb-12 md:mb-16">
         <div className={`transition-all duration-700 ease-out ${
           showCard1 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
         }`}>
           <TextCard
             title="Introduction"
-            icon={<BookOpen size={40} />}
+            icon={<BookOpen className="w-10 h-10 md:w-12 md:h-12 lg:w-16 lg:h-16" />}
             wordCount={sampleTexts[0].wordCount}
             readingTime={sampleTexts[0].readingTime}
             onClick={() => handleSelectSampleText(0)}
@@ -128,7 +128,7 @@ export default function HomeView() {
         }`}>
           <TextCard
             title="AI Future"
-            icon={<Brain size={40} />}
+            icon={<Brain className="w-10 h-10 md:w-12 md:h-12 lg:w-16 lg:h-16" />}
             wordCount={sampleTexts[1].wordCount}
             readingTime={sampleTexts[1].readingTime}
             onClick={() => handleSelectSampleText(1)}
@@ -139,7 +139,7 @@ export default function HomeView() {
         }`}>
           <TextCard
             title="Mindfulness"
-            icon={<Sparkles size={40} />}
+            icon={<Sparkles className="w-10 h-10 md:w-12 md:h-12 lg:w-16 lg:h-16" />}
             wordCount={sampleTexts[2].wordCount}
             readingTime={sampleTexts[2].readingTime}
             onClick={() => handleSelectSampleText(2)}
@@ -150,7 +150,7 @@ export default function HomeView() {
         }`}>
           <TextCard
             title="Internet History"
-            icon={<History size={40} />}
+            icon={<History className="w-10 h-10 md:w-12 md:h-12 lg:w-16 lg:h-16" />}
             wordCount={sampleTexts[3].wordCount}
             readingTime={sampleTexts[3].readingTime}
             onClick={() => handleSelectSampleText(3)}
