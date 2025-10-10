@@ -22,7 +22,7 @@ export function useArticleLoader({ onError, onSuccess }: UseArticleLoaderProps =
     setAudioUrl,
   } = useReader()
 
-  const { extractUrl } = useUrlExtraction()
+  const { extractUrl, isLoading, error: extractionError } = useUrlExtraction()
 
   // Clear all article state before loading new article
   const clearArticleState = useCallback(() => {
@@ -87,16 +87,18 @@ export function useArticleLoader({ onError, onSuccess }: UseArticleLoaderProps =
   // Load web article by URL
   const loadWebArticle = useCallback(async (url: string) => {
     try {
-      // Check daily limit
-      const canExtract = LocalUsageService.canExtract()
-      if (!canExtract) {
-        const usage = LocalUsageService.getUsage()
-        const resetTime = new Date(usage.resetDate).toLocaleTimeString('en-US', { 
-          hour: 'numeric', 
-          minute: '2-digit' 
-        })
-        throw new Error(`Daily limit reached (${usage.limit} articles). Resets at ${resetTime}`)
-      }
+      // Check daily limit - TEMPORARILY DISABLED FOR TESTING
+      // const canExtract = LocalUsageService.canExtract()
+      // if (!canExtract) {
+      //   const usage = LocalUsageService.getUsage()
+      //   const resetTime = new Date(usage.resetDate).toLocaleTimeString('en-US', { 
+      //     hour: 'numeric', 
+      //     minute: '2-digit' 
+      //   })
+      //   // Return error message instead of throwing
+      //   onError?.(`I've hit my daily limit. I'll be back at midnight`)
+      //   return false
+      // }
 
       // Clear state
       clearArticleState()
@@ -104,7 +106,9 @@ export function useArticleLoader({ onError, onSuccess }: UseArticleLoaderProps =
       // Extract content
       const extractedData = await extractUrl(url)
       if (!extractedData) {
-        throw new Error("Failed to extract article content")
+        // Error is already set in useUrlExtraction hook and will be displayed
+        // Don't navigate to loading page if extraction failed
+        return false
       }
 
       // Increment usage count
@@ -159,5 +163,7 @@ export function useArticleLoader({ onError, onSuccess }: UseArticleLoaderProps =
     loadSampleArticle,
     loadWebArticle,
     clearArticleState,
+    isLoading,
+    extractionError,
   }
 }

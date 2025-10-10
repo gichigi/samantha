@@ -49,7 +49,7 @@ export default function UrlInput({ onSubmit, isLoading, darkMode = true }: UrlIn
             <Globe size={18} />
           </div>
           <input
-            type="url"
+            type="text"
             value={url}
             onChange={handleUrlChange}
             placeholder="Paste a URL to read..."

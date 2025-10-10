@@ -5,7 +5,6 @@ import { BookOpen, Brain, Sparkles, History, Globe } from "lucide-react"
 import TextCard from "@/components/text-card"
 import { sampleTexts } from "@/data/sample-texts"
 import { useReader } from "@/contexts/reader-context"
-import { useUrlExtraction } from "@/hooks/use-url-extraction"
 import { useViewState } from "@/hooks/use-view-state"
 import { useArticleLoader } from "@/hooks/use-article-loader"
 import { LocalUsageService } from "@/services/local-usage-service"
@@ -13,11 +12,11 @@ import { validateUrl } from "@/utils/url-validation"
 
 export default function HomeView() {
   const { transitionTo } = useViewState()
-  const { isLoading, extractUrl, error: extractionError } = useUrlExtraction()
-  const { loadSampleArticle, loadWebArticle } = useArticleLoader({
+  const { loadSampleArticle, loadWebArticle, isLoading, extractionError } = useArticleLoader({
     onError: (error) => setError(error),
     onSuccess: () => transitionTo("loading", true)
   })
+
 
   // Animation state
   const [showDivider, setShowDivider] = useState(false)
@@ -66,7 +65,8 @@ export default function HomeView() {
     if (!validation.isValid) {
       const errorMsg = validation.error?.message || "Invalid URL"
       setValidationError(errorMsg)
-      console.error("URL validation failed:", validation.error?.code, errorMsg)
+      // Log to console without throwing
+      console.log("URL validation failed:", validation.error?.code, errorMsg)
       return
     }
 
@@ -78,9 +78,12 @@ export default function HomeView() {
 
   const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setUrl(e.target.value)
-    if (validationError || error) {
+    // Clear all error types when user starts typing
+    if (validationError || error || extractionError) {
       setValidationError(null)
       setError(null)
+      // Note: extractionError is managed by useUrlExtraction hook
+      // It will be cleared when a new extraction starts
     }
   }
 
@@ -168,7 +171,7 @@ export default function HomeView() {
               <Globe size={18} />
             </div>
             <input
-              type="url"
+              type="text"
               value={url}
               onChange={handleUrlChange}
               placeholder="https://..."
@@ -194,12 +197,17 @@ export default function HomeView() {
         </form>
         
         {/* Error message display - right under URL input */}
-        {(error || validationError) && (
+        {(error || validationError || extractionError) && (
           <div 
             className="bg-white/10 backdrop-blur-sm border border-white/20 p-4 rounded-full max-w-xl text-center mt-4 transition-all duration-300"
             role="alert"
           >
-            <p className="text-white/90 text-sm font-light">{error || validationError}</p>
+            <p className="text-white/90 text-sm font-light">
+              {extractionError?.message || error || validationError}
+            </p>
+            {extractionError?.suggestion && (
+              <p className="text-white/70 text-xs mt-1">{extractionError.suggestion}</p>
+            )}
           </div>
         )}
       </div>

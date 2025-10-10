@@ -72,6 +72,58 @@ export class FirecrawlService {
         const markdown = result.data.markdown
         const metadata = result.data.metadata || {}
         
+        // Check HTTP status code first (most reliable indicator)
+        const statusCode = metadata.statusCode
+        if (statusCode && (statusCode >= 400 && statusCode < 600)) {
+          console.warn(`Firecrawl: HTTP error status ${statusCode} for URL: ${url}`)
+          return null
+        }
+        
+        // Fallback: Check for error pages by looking for specific indicators in title/content
+        const pageTitle = metadata.title || ''
+        const titleLower = pageTitle.toLowerCase()
+        
+        // Specific error page indicators - focus on title patterns
+        const errorPagePatterns = [
+          // Common error page titles
+          'page not found',
+          'not found',
+          'this page does not exist',
+          'cannot find the page',
+          'the page you requested',
+          'error - page not found',
+          '404 - page not found',
+          '404 error',
+          'server error',
+          'internal server error',
+          'access denied',
+          'forbidden',
+          'unauthorized'
+        ]
+        
+        // Check title for error indicators
+        const isErrorPage = errorPagePatterns.some(pattern => titleLower.includes(pattern))
+        
+        if (isErrorPage) {
+          console.warn('Firecrawl: Detected error page content in title:', pageTitle)
+          return null
+        }
+        
+        // Only check content for very specific error indicators (less likely to be false positives)
+        const contentText = markdown.toLowerCase()
+        const specificContentErrors = [
+          '404 error',
+          'page not found',
+          'this page does not exist',
+          'the requested page could not be found'
+        ]
+        
+        // Check if content is mostly error message (short content with error indicators)
+        if (markdown.length < 500 && specificContentErrors.some(indicator => contentText.includes(indicator))) {
+          console.warn('Firecrawl: Detected error page content in short content')
+          return null
+        }
+        
         if (markdown.length < 100) {
           console.warn('Firecrawl: Content too short')
           return null

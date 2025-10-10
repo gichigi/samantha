@@ -13,8 +13,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ 
         error: {
           code: "INVALID_REQUEST",
-          message: "Invalid request body",
-          suggestion: "Make sure you're sending a valid JSON object with a 'url' field."
+          message: "Something went wrong on my end. Try again?",
         }
       }, { status: 400 })
     }
@@ -25,8 +24,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ 
         error: {
           code: "MISSING_URL",
-          message: "URL is required",
-          suggestion: "Please provide a valid URL to extract content from."
+          message: "That URL doesn't look right to me",
         }
       }, { status: 400 })
     }
@@ -49,14 +47,13 @@ export async function POST(request: Request) {
       // Extract content using our improved service
       const extractionResult = await extractionService.extractContent(url)
 
-      // Check word count limit (800 words max)
-      const MAX_WORDS = 800
+      // Check word count limit (1500 words max)
+      const MAX_WORDS = 1500
       if (extractionResult.wordCount && extractionResult.wordCount > MAX_WORDS) {
         return NextResponse.json({ 
           error: {
             code: "CONTENT_TOO_LONG",
-            message: `Article is too long (${extractionResult.wordCount.toLocaleString()} words)`,
-            suggestion: `Please try a shorter article. Maximum length is ${MAX_WORDS.toLocaleString()} words to keep costs reasonable.`
+            message: "This article is a bit too long for me",
           }
         }, { status: 413 }) // 413 Payload Too Large
       }
@@ -112,15 +109,21 @@ export async function POST(request: Request) {
             break
         }
         
-        return NextResponse.json({ error }, { status: statusCode })
+        // Ensure the error object has all properties
+        const structuredError = {
+          code: error.code,
+          message: error.message || "I can't read this article. Try a different one?",
+          suggestion: error.suggestion
+        }
+        
+        return NextResponse.json({ error: structuredError }, { status: statusCode })
       } else {
         // Fallback for unexpected errors
         console.error("Unexpected error during content extraction:", error)
         return NextResponse.json({ 
           error: {
             code: "EXTRACTION_FAILED",
-            message: error.message || "Failed to extract content from the URL",
-            suggestion: "Please try a different URL or check your internet connection."
+            message: "I can't read this article. Try a different one?",
           }
         }, { status: 500 })
       }
@@ -131,8 +134,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ 
       error: {
         code: "SERVER_ERROR",
-        message: "An unexpected error occurred",
-        suggestion: "Please try again later. If the problem persists, contact support."
+        message: "Something went wrong on my end. Try again?",
       }
     }, { status: 500 })
   }

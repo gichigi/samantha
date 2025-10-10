@@ -96,6 +96,14 @@ export default function LoadingView({ progress, message }: LoadingViewProps) {
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-[#3b82f6] p-4">
+      {/* Article title */}
+      {currentTitle && (
+        <div className="mb-8 text-center">
+          <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">
+            {currentTitle}
+          </h1>
+        </div>
+      )}
       <style jsx>{`
         @keyframes pulse {
           0%, 100% { opacity: 1; }
@@ -127,7 +135,7 @@ export default function LoadingView({ progress, message }: LoadingViewProps) {
       `}</style>
       
       {/* Breathing circle for loading */}
-      <div className="mb-8">
+      <div>
         <div className="flex items-center justify-center h-48">
           <div 
             className="relative"

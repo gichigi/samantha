@@ -66,8 +66,7 @@ export function validateUrl(url: string): ValidationResult {
       isValid: false,
       error: {
         code: 'EMPTY_URL',
-        message: 'URL cannot be empty',
-        suggestion: 'Please paste a web article URL',
+        message: 'That URL doesn\'t look right to me',
       },
     }
   }
@@ -81,8 +80,7 @@ export function validateUrl(url: string): ValidationResult {
       isValid: false,
       error: {
         code: 'INVALID_URL_FORMAT',
-        message: 'Invalid URL format',
-        suggestion: 'Please enter a complete web address (like https://example.com/article)',
+        message: 'That URL doesn\'t look right to me',
       },
     }
   }
@@ -93,8 +91,7 @@ export function validateUrl(url: string): ValidationResult {
       isValid: false,
       error: {
         code: 'INVALID_PROTOCOL',
-        message: 'Only HTTP and HTTPS protocols are supported',
-        suggestion: 'Please use a complete web address (like https://example.com)',
+        message: 'That URL doesn\'t look right to me',
       },
     }
   }
@@ -108,8 +105,7 @@ export function validateUrl(url: string): ValidationResult {
       isValid: false,
       error: {
         code: 'UNSUPPORTED_FILE_TYPE',
-        message: "Can't read PDF files",
-        suggestion: 'Try copying a web article URL instead. PDFs are too expensive to process.',
+        message: 'I can\'t read this article. Try a different one?',
       },
     }
   }
@@ -120,8 +116,7 @@ export function validateUrl(url: string): ValidationResult {
       isValid: false,
       error: {
         code: 'UNSUPPORTED_FILE_TYPE',
-        message: "Can't read document files",
-        suggestion: 'Please paste a web article URL instead.',
+        message: 'I can\'t read this article. Try a different one?',
       },
     }
   }
@@ -132,8 +127,7 @@ export function validateUrl(url: string): ValidationResult {
       isValid: false,
       error: {
         code: 'UNSUPPORTED_FILE_TYPE',
-        message: "Can't read archive files",
-        suggestion: 'Please paste a web article URL instead.',
+        message: 'I can\'t read this article. Try a different one?',
       },
     }
   }
@@ -165,8 +159,7 @@ export function validateContentType(contentType: string | null): ValidationResul
         isValid: false,
         error: {
           code: 'UNSUPPORTED_CONTENT_TYPE',
-          message: 'This URL points to a PDF file',
-          suggestion: 'PDFs are too expensive to process. Try a web article instead.',
+          message: 'I can\'t read this article. Try a different one?',
         },
       }
     }
@@ -176,8 +169,7 @@ export function validateContentType(contentType: string | null): ValidationResul
         isValid: false,
         error: {
           code: 'UNSUPPORTED_CONTENT_TYPE',
-          message: 'This URL points to a document file',
-          suggestion: 'Document files are not supported. Please use a web article URL.',
+          message: 'I can\'t read this article. Try a different one?',
         },
       }
     }
@@ -187,8 +179,7 @@ export function validateContentType(contentType: string | null): ValidationResul
         isValid: false,
         error: {
           code: 'UNSUPPORTED_CONTENT_TYPE',
-          message: 'This URL points to an archive file',
-          suggestion: 'Archive files are not supported. Please use a web article URL.',
+          message: 'I can\'t read this article. Try a different one?',
         },
       }
     }
@@ -205,13 +196,13 @@ export function validateContentType(contentType: string | null): ValidationResul
  */
 export function getErrorMessage(code: string): string {
   const messages: Record<string, string> = {
-    EMPTY_URL: 'Please paste a URL',
-    INVALID_URL_FORMAT: 'Please enter a valid URL',
-    INVALID_PROTOCOL: 'Please use HTTP or HTTPS',
-    UNSUPPORTED_FILE_TYPE: "Can't read this file type",
-    UNSUPPORTED_CONTENT_TYPE: "Can't read this content type",
+    EMPTY_URL: 'That URL doesn\'t look right to me',
+    INVALID_URL_FORMAT: 'That URL doesn\'t look right to me',
+    INVALID_PROTOCOL: 'That URL doesn\'t look right to me',
+    UNSUPPORTED_FILE_TYPE: 'I can\'t read this article. Try a different one?',
+    UNSUPPORTED_CONTENT_TYPE: 'I can\'t read this article. Try a different one?',
   }
 
-  return messages[code] || 'Validation failed'
+  return messages[code] || 'That URL doesn\'t look right to me'
 }
 

@@ -47,19 +47,6 @@ export function ReaderProvider({ children }: { children: ReactNode }) {
   const [activeWordIndex, setActiveWordIndex] = useState(0)
   const [useTimestampHighlighting, setUseTimestampHighlighting] = useState(false)
 
-  // Track reading using localStorage
-  const trackReading = async (url: string, title: string, wordCount: number) => {
-    try {
-      if (typeof window !== "undefined") {
-        LocalHistoryService.addItem(title, url, wordCount)
-        return true
-      }
-      return false
-    } catch (error) {
-      console.error("Error tracking reading:", error)
-      return false
-    }
-  }
 
   // Update word count when text changes
   const updateCurrentText = (text: string) => {

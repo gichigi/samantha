@@ -119,11 +119,19 @@ export class ContentExtractionService {
         clearTimeout(timeoutId)
         
         if (!response.ok) {
+          // Check for 4xx/5xx errors specifically
+          if (response.status >= 400 && response.status < 600) {
+            throw this.createError(
+              ExtractionErrorType.ACCESS_ERROR,
+              "I can't read this article. Try a different one?",
+            )
+          }
+          
           throw this.createError(
             ExtractionErrorType.ACCESS_ERROR,
-          `Failed to fetch URL: ${response.status} ${response.statusText}`
-        )
-      }
+            "I can't read this article. Try a different one?",
+          )
+        }
 
       // Check Content-Type to ensure it's not a blocked file type
       const contentType = response.headers.get('content-type')
@@ -142,6 +150,67 @@ export class ContentExtractionService {
 
       const html = await response.text()
       const $ = cheerio.load(html)
+      
+      // Check for error pages (404, 500, etc.) by looking for specific indicators
+      const pageTitle = $('title').text()
+      const pageTitleLower = pageTitle.toLowerCase()
+      
+      // More specific error page indicators - focus on title and common error page patterns
+      const errorPagePatterns = [
+        // HTTP status codes
+        /^404/i,
+        /^500/i,
+        /^403/i,
+        /^401/i,
+        // Common error page titles
+        'page not found',
+        'not found',
+        'this page does not exist',
+        'cannot find the page',
+        'the page you requested',
+        'error - page not found',
+        '404 - page not found',
+        '404 error',
+        'server error',
+        'internal server error',
+        'access denied',
+        'forbidden',
+        'unauthorized'
+      ]
+      
+      // Check title first (most reliable indicator)
+      const isErrorPage = errorPagePatterns.some(pattern => {
+        if (pattern instanceof RegExp) {
+          return pattern.test(pageTitleLower)
+        }
+        return pageTitleLower.includes(pattern)
+      })
+      
+      if (isErrorPage) {
+        console.warn('Basic fallback: Detected error page content in title:', pageTitle)
+        throw this.createError(
+          ExtractionErrorType.ACCESS_ERROR,
+          "I can't read this article. Try a different one?",
+        )
+      }
+      
+      // Only check content for very specific error indicators (less likely to be false positives)
+      const bodyText = $('body').text().toLowerCase()
+      const specificContentErrors = [
+        '404 error',
+        'page not found',
+        'this page does not exist',
+        'the requested page could not be found'
+      ]
+      
+      // Check if content is mostly error message (short content with error indicators)
+      if (bodyText.length < 500 && specificContentErrors.some(indicator => bodyText.includes(indicator))) {
+        console.warn('Basic fallback: Detected error page content in short content')
+        throw this.createError(
+          ExtractionErrorType.ACCESS_ERROR,
+          "I can't read this article. Try a different one?",
+        )
+      }
       
       // Extract title - try multiple sources
       let title = $('meta[property="og:title"]').attr('content') ||

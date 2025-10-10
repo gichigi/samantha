@@ -13,7 +13,6 @@ export default function ReaderView() {
     currentByline,
     currentUrl,
     audioUrl,
-    trackReading,
     wordCount,
   } = useReader()
 
@@ -93,11 +92,8 @@ export default function ReaderView() {
     ttsService.setCallbacks(
       () => {}, // Word change - not needed for now
       () => {
-        // Track reading on finish
+        // Audio finished playing
         setIsPlaying(false)
-        if (currentUrl) {
-          trackReading(currentUrl, currentTitle, wordCount)
-        }
       },
       () => {
         // Autoplay blocked
@@ -113,7 +109,7 @@ export default function ReaderView() {
         clearInterval(progressIntervalRef.current)
       }
     }
-  }, [currentUrl, currentTitle, wordCount, trackReading])
+  }, [currentUrl, currentTitle, wordCount])
 
   // Setup nav context 
   useEffect(() => {

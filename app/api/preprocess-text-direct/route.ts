@@ -1,4 +1,25 @@
 import { NextResponse } from "next/server"
+import fs from "fs"
+import path from "path"
+
+// Load brand voice guidelines once at module level for better performance
+let brandVoiceGuidelines: string | null = null
+
+function getBrandVoiceGuidelines(): string {
+  if (!brandVoiceGuidelines) {
+    try {
+      // Load BRAND_VOICE_TTS.md from the project root
+      const brandVoicePath = path.join(process.cwd(), "BRAND_VOICE_TTS.md")
+      brandVoiceGuidelines = fs.readFileSync(brandVoicePath, "utf-8")
+      console.log("Brand voice guidelines loaded successfully")
+    } catch (error) {
+      console.error("Failed to load brand voice guidelines:", error)
+      // Fallback to empty string if file can't be loaded
+      brandVoiceGuidelines = ""
+    }
+  }
+  return brandVoiceGuidelines
+}
 
 export async function POST(request: Request) {
   try {
@@ -30,13 +51,27 @@ export async function POST(request: Request) {
 
     console.log(`Preprocessing text with ${model}, text length: ${text.length}${title ? `, title: "${title}"` : ""}`)
 
+    // Load brand voice guidelines and combine with task instructions
+    const brandVoice = getBrandVoiceGuidelines()
+    const fullInstructions = `${instructions}
+
+---
+
+# BRAND VOICE PERSONALITY
+
+${brandVoice}
+
+---
+
+Apply the brand voice personality guidelines above when transforming the text.`
+
     // Determine the correct API endpoint and parameters based on model
     const apiEndpoint = "https://api.openai.com/v1/chat/completions"
     const requestBody: any = {
       messages: [
         {
           role: "system",
-          content: instructions,
+          content: fullInstructions,
         },
         {
           role: "user",
@@ -87,8 +122,8 @@ export async function POST(request: Request) {
       
       if (title && fullResponse.includes("NORMALIZED_TITLE:")) {
         const lines = fullResponse.split('\n')
-        const titleLine = lines.find(line => line.trim().startsWith("NORMALIZED_TITLE:"))
-        const bylineLine = lines.find(line => line.trim().startsWith("BYLINE:"))
+        const titleLine = lines.find((line: string) => line.trim().startsWith("NORMALIZED_TITLE:"))
+        const bylineLine = lines.find((line: string) => line.trim().startsWith("BYLINE:"))
         
         if (titleLine) {
           normalizedTitle = titleLine.replace("NORMALIZED_TITLE:", "").trim()
@@ -99,7 +134,7 @@ export async function POST(request: Request) {
         }
         
         // Remove the title and byline lines from the main text
-        preprocessedText = lines.filter(line => 
+        preprocessedText = lines.filter((line: string) => 
           !line.trim().startsWith("NORMALIZED_TITLE:") && 
           !line.trim().startsWith("BYLINE:")
         ).join('\n').trim()
