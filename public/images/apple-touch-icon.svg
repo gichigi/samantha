@@ -1,43 +1,22 @@
-<svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- Apple touch icon with rounded corners and warm gradient background -->
+<svg width="180" height="180" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="orbGradient" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" style="stop-color:#60a5fa;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#3b82f6;stop-opacity:1" />
-    </linearGradient>
-    <linearGradient id="centerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#e0f2fe;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#3b82f6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2563eb;stop-opacity:1" />
     </linearGradient>
   </defs>
   
-  <!-- Background with rounded corners -->
-  <rect width="180" height="180" rx="40" fill="url(#bgGradient)"/>
+  <!-- Blue gradient background matching the OG image -->
+  <rect width="128" height="128" rx="24" fill="url(#orbGradient)"/>
   
-  <!-- Center circle - Samantha's core -->
-  <circle cx="90" cy="90" r="20" fill="url(#centerGradient)"/>
-  
-  <!-- Inner sound waves -->
-  <path d="M 60 90 Q 60 70, 90 70 Q 120 70, 120 90 Q 120 110, 90 110 Q 60 110, 60 90" 
-        stroke="white" 
-        stroke-width="5" 
-        fill="none" 
-        stroke-linecap="round"
-        opacity="0.7"/>
-  
-  <!-- Middle sound waves -->
-  <path d="M 45 90 Q 45 55, 90 55 Q 135 55, 135 90 Q 135 125, 90 125 Q 45 125, 45 90" 
-        stroke="white" 
-        stroke-width="4" 
-        fill="none" 
-        stroke-linecap="round"
-        opacity="0.5"/>
-  
-  <!-- Outer sound waves -->
-  <path d="M 30 90 Q 30 40, 90 40 Q 150 40, 150 90 Q 150 140, 90 140 Q 30 140, 30 90" 
-        stroke="white" 
-        stroke-width="3" 
-        fill="none" 
-        stroke-linecap="round"
-        opacity="0.3"/>
+  <!-- Centered pulsing orb -->
+  <g transform="translate(64, 64)">
+    <!-- Outer rings (pulsing effect) -->
+    <circle cx="0" cy="0" r="35" stroke="white" stroke-width="2" fill="none" opacity="0.2"/>
+    <circle cx="0" cy="0" r="27.5" stroke="white" stroke-width="2" fill="none" opacity="0.4"/>
+    <circle cx="0" cy="0" r="20" stroke="white" stroke-width="3" fill="none" opacity="0.6"/>
+    <!-- Core orb -->
+    <circle cx="0" cy="0" r="12.5" fill="white" opacity="0.9"/>
+  </g>
 </svg>
