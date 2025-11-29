@@ -79,6 +79,12 @@ export const metadata: Metadata = {
     shortcut: '/favicon.ico',
     apple: '/apple-touch-icon.png',
   },
+  colorScheme: "dark light",
+  appleWebApp: {
+    capable: true,
+    title: "Samantha",
+    statusBarStyle: "default",
+  },
   manifest: '/manifest.json',
 }
 
